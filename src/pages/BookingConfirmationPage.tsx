@@ -1,0 +1,51 @@
+import { Link } from "react-router-dom";
+
+const BookingConfirmationPage = () => {
+  return (
+    <div className="py-6">
+      <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-light text-3xl">
+          ✅
+        </div>
+
+        <h1 className="mt-6 text-3xl font-bold text-text-primary">
+          Booking confirmed
+        </h1>
+
+        <p className="mt-4 text-base leading-7 text-text-secondary">
+          Your service request has been successfully placed. The provider will
+          review the booking details and contact you if needed.
+        </p>
+
+        <div className="mt-8 rounded-2xl bg-soft px-5 py-4 text-left">
+          <p className="text-sm font-semibold text-text-primary">
+            Sample confirmation details
+          </p>
+          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
+            <li>• Booking ID: LS-2026-1042</li>
+            <li>• Status: Pending provider confirmation</li>
+            <li>• Payment: To be completed as selected during booking</li>
+          </ul>
+        </div>
+
+        <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link
+            to="/services"
+            className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
+          >
+            Browse More Services
+          </Link>
+
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-xl border border-border-soft px-6 py-3 text-sm font-semibold text-text-primary transition hover:bg-soft"
+          >
+            Go to Home
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default BookingConfirmationPage;
