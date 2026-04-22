@@ -1,6 +1,35 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import type { BookingData } from "../types/booking";
 
 const BookingConfirmationPage = () => {
+  const location = useLocation();
+  const bookingData = location.state as BookingData | undefined;
+
+  if (!bookingData) {
+    return (
+      <div className="py-6">
+        <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
+          <h1 className="text-3xl font-bold text-text-primary">
+            No booking data found
+          </h1>
+          <p className="mt-4 text-base leading-7 text-text-secondary">
+            Please complete a booking first before viewing the confirmation
+            page.
+          </p>
+
+          <div className="mt-8">
+            <Link
+              to="/services"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Browse Services
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="py-6">
       <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
@@ -19,12 +48,18 @@ const BookingConfirmationPage = () => {
 
         <div className="mt-8 rounded-2xl bg-soft px-5 py-4 text-left">
           <p className="text-sm font-semibold text-text-primary">
-            Sample confirmation details
+            Booking details
           </p>
+
           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-            <li>• Booking ID: LS-2026-1042</li>
-            <li>• Status: Pending provider confirmation</li>
-            <li>• Payment: To be completed as selected during booking</li>
+            <li>• Provider: {bookingData.providerName}</li>
+            <li>• Service: {bookingData.service}</li>
+            <li>• Date: {bookingData.date}</li>
+            <li>• Time: {bookingData.time}</li>
+            <li>• Phone: {bookingData.phone}</li>
+            <li>• Payment: {bookingData.paymentMethod}</li>
+            <li>• Address: {bookingData.address}</li>
+            {bookingData.notes && <li>• Notes: {bookingData.notes}</li>}
           </ul>
         </div>
 

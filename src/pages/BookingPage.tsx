@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import BookingExtrasSection from "../components/booking/BookingExtrasSection";
 import BookingFormSection from "../components/booking/BookingFormSection";
 import BookingProviderCard from "../components/booking/BookingProviderCard";
 import BookingSummarySidebar from "../components/booking/BookingSummarySidebar";
 import { providers } from "../data/providers";
+import type { BookingData } from "../types/booking";
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -22,6 +24,18 @@ const BookingPage = () => {
       </div>
     );
   }
+
+  const [bookingData, setBookingData] = useState<BookingData>({
+    providerId: provider.id,
+    providerName: provider.name,
+    service: provider.services[0] || "",
+    date: "",
+    time: "",
+    phone: "",
+    address: "",
+    paymentMethod: "Cash after service",
+    notes: "",
+  });
 
   return (
     <div className="space-y-8 py-6">
@@ -46,11 +60,19 @@ const BookingPage = () => {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-8">
-          <BookingFormSection serviceOptions={provider.services} />
-          <BookingExtrasSection />
+          <BookingFormSection
+            serviceOptions={provider.services}
+            bookingData={bookingData}
+            setBookingData={setBookingData}
+          />
+
+          <BookingExtrasSection
+            bookingData={bookingData}
+            setBookingData={setBookingData}
+          />
         </div>
 
-        <BookingSummarySidebar provider={provider} />
+        <BookingSummarySidebar provider={provider} bookingData={bookingData} />
       </div>
     </div>
   );

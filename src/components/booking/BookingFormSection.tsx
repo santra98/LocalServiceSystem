@@ -1,8 +1,16 @@
+import type { BookingData } from "../../types/booking";
+
 interface BookingFormSectionProps {
   serviceOptions: string[];
+  bookingData: BookingData;
+  setBookingData: React.Dispatch<React.SetStateAction<BookingData>>;
 }
 
-const BookingFormSection = ({ serviceOptions }: BookingFormSectionProps) => {
+const BookingFormSection = ({
+  serviceOptions,
+  bookingData,
+  setBookingData,
+}: BookingFormSectionProps) => {
   return (
     <section className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-text-primary">Booking details</h2>
@@ -20,6 +28,13 @@ const BookingFormSection = ({ serviceOptions }: BookingFormSectionProps) => {
           </label>
           <select
             id="service"
+            value={bookingData.service}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                service: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
           >
             {serviceOptions.map((service) => (
@@ -40,6 +55,13 @@ const BookingFormSection = ({ serviceOptions }: BookingFormSectionProps) => {
           <input
             id="bookingDate"
             type="date"
+            value={bookingData.date}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                date: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
           />
         </div>
@@ -53,13 +75,21 @@ const BookingFormSection = ({ serviceOptions }: BookingFormSectionProps) => {
           </label>
           <select
             id="bookingTime"
+            value={bookingData.time}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                time: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
           >
-            <option>09:00 AM</option>
-            <option>11:00 AM</option>
-            <option>01:00 PM</option>
-            <option>03:00 PM</option>
-            <option>05:00 PM</option>
+            <option value="">Select a time</option>
+            <option value="09:00 AM">09:00 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="01:00 PM">01:00 PM</option>
+            <option value="03:00 PM">03:00 PM</option>
+            <option value="05:00 PM">05:00 PM</option>
           </select>
         </div>
 
@@ -74,6 +104,13 @@ const BookingFormSection = ({ serviceOptions }: BookingFormSectionProps) => {
             id="phone"
             type="tel"
             placeholder="Enter your phone number"
+            value={bookingData.phone}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                phone: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-primary"
           />
         </div>
@@ -89,6 +126,13 @@ const BookingFormSection = ({ serviceOptions }: BookingFormSectionProps) => {
             id="address"
             rows={4}
             placeholder="Enter full service address"
+            value={bookingData.address}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                address: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-primary"
           />
         </div>

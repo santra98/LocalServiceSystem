@@ -1,4 +1,14 @@
-const BookingExtrasSection = () => {
+import type { BookingData } from "../../types/booking";
+
+interface BookingExtrasSectionProps {
+  bookingData: BookingData;
+  setBookingData: React.Dispatch<React.SetStateAction<BookingData>>;
+}
+
+const BookingExtrasSection = ({
+  bookingData,
+  setBookingData,
+}: BookingExtrasSectionProps) => {
   return (
     <section className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-text-primary">
@@ -18,11 +28,18 @@ const BookingExtrasSection = () => {
           </label>
           <select
             id="paymentMethod"
+            value={bookingData.paymentMethod}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                paymentMethod: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
           >
-            <option>Cash after service</option>
-            <option>UPI</option>
-            <option>Card on delivery</option>
+            <option value="Cash after service">Cash after service</option>
+            <option value="UPI">UPI</option>
+            <option value="Card on delivery">Card on delivery</option>
           </select>
         </div>
 
@@ -37,6 +54,13 @@ const BookingExtrasSection = () => {
             id="notes"
             rows={4}
             placeholder="Add any instructions, landmarks or preferences"
+            value={bookingData.notes}
+            onChange={(e) =>
+              setBookingData((prev) => ({
+                ...prev,
+                notes: e.target.value,
+              }))
+            }
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-primary"
           />
         </div>
