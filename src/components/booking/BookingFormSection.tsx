@@ -1,14 +1,20 @@
+import FormInput from "../ui/FormInput";
+import FormSelect from "../ui/FormSelect";
+import FormTextarea from "../ui/FormTextarea";
 import type { BookingData } from "../../types/booking";
+import type { BookingErrors } from "../../utils/bookingValidation";
 
 interface BookingFormSectionProps {
   serviceOptions: string[];
   bookingData: BookingData;
+  errors: BookingErrors;
   setBookingData: React.Dispatch<React.SetStateAction<BookingData>>;
 }
 
 const BookingFormSection = ({
   serviceOptions,
   bookingData,
+  errors,
   setBookingData,
 }: BookingFormSectionProps) => {
   return (
@@ -19,121 +25,71 @@ const BookingFormSection = ({
       </p>
 
       <div className="mt-6 grid gap-5 md:grid-cols-2">
-        <div>
-          <label
-            htmlFor="service"
-            className="mb-2 block text-sm font-medium text-text-primary"
-          >
-            Select service
-          </label>
-          <select
-            id="service"
-            value={bookingData.service}
-            onChange={(e) =>
-              setBookingData((prev) => ({
-                ...prev,
-                service: e.target.value,
-              }))
-            }
-            className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
-          >
-            {serviceOptions.map((service) => (
-              <option key={service} value={service}>
-                {service}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelect
+          id="service"
+          label="Select service"
+          value={bookingData.service}
+          error={errors.service}
+          onChange={(value) =>
+            setBookingData((prev) => ({ ...prev, service: value }))
+          }
+          options={serviceOptions.map((service) => ({
+            label: service,
+            value: service,
+          }))}
+        />
 
-        <div>
-          <label
-            htmlFor="bookingDate"
-            className="mb-2 block text-sm font-medium text-text-primary"
-          >
-            Preferred date
-          </label>
-          <input
-            id="bookingDate"
-            type="date"
-            value={bookingData.date}
-            onChange={(e) =>
-              setBookingData((prev) => ({
-                ...prev,
-                date: e.target.value,
-              }))
-            }
-            className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
-          />
-        </div>
+        <FormInput
+          id="bookingDate"
+          label="Preferred date"
+          type="date"
+          value={bookingData.date}
+          error={errors.date}
+          onChange={(value) =>
+            setBookingData((prev) => ({ ...prev, date: value }))
+          }
+        />
 
-        <div>
-          <label
-            htmlFor="bookingTime"
-            className="mb-2 block text-sm font-medium text-text-primary"
-          >
-            Preferred time
-          </label>
-          <select
-            id="bookingTime"
-            value={bookingData.time}
-            onChange={(e) =>
-              setBookingData((prev) => ({
-                ...prev,
-                time: e.target.value,
-              }))
-            }
-            className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
-          >
-            <option value="">Select a time</option>
-            <option value="09:00 AM">09:00 AM</option>
-            <option value="11:00 AM">11:00 AM</option>
-            <option value="01:00 PM">01:00 PM</option>
-            <option value="03:00 PM">03:00 PM</option>
-            <option value="05:00 PM">05:00 PM</option>
-          </select>
-        </div>
+        <FormSelect
+          id="bookingTime"
+          label="Preferred time"
+          value={bookingData.time}
+          error={errors.time}
+          onChange={(value) =>
+            setBookingData((prev) => ({ ...prev, time: value }))
+          }
+          options={[
+            { label: "Select a time", value: "" },
+            { label: "09:00 AM", value: "09:00 AM" },
+            { label: "11:00 AM", value: "11:00 AM" },
+            { label: "01:00 PM", value: "01:00 PM" },
+            { label: "03:00 PM", value: "03:00 PM" },
+            { label: "05:00 PM", value: "05:00 PM" },
+          ]}
+        />
 
-        <div>
-          <label
-            htmlFor="phone"
-            className="mb-2 block text-sm font-medium text-text-primary"
-          >
-            Contact number
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            placeholder="Enter your phone number"
-            value={bookingData.phone}
-            onChange={(e) =>
-              setBookingData((prev) => ({
-                ...prev,
-                phone: e.target.value,
-              }))
-            }
-            className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-primary"
-          />
-        </div>
+        <FormInput
+          id="phone"
+          label="Contact number"
+          type="tel"
+          value={bookingData.phone}
+          placeholder="Enter your phone number"
+          error={errors.phone}
+          onChange={(value) =>
+            setBookingData((prev) => ({ ...prev, phone: value }))
+          }
+        />
 
         <div className="md:col-span-2">
-          <label
-            htmlFor="address"
-            className="mb-2 block text-sm font-medium text-text-primary"
-          >
-            Service address
-          </label>
-          <textarea
+          <FormTextarea
             id="address"
-            rows={4}
-            placeholder="Enter full service address"
+            label="Service address"
             value={bookingData.address}
-            onChange={(e) =>
-              setBookingData((prev) => ({
-                ...prev,
-                address: e.target.value,
-              }))
+            placeholder="Enter full service address"
+            error={errors.address}
+            onChange={(value) =>
+              setBookingData((prev) => ({ ...prev, address: value }))
             }
-            className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-primary"
           />
         </div>
       </div>

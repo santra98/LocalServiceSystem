@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import BookingExtrasSection from "../components/booking/BookingExtrasSection";
 import BookingFormSection from "../components/booking/BookingFormSection";
@@ -6,6 +6,7 @@ import BookingProviderCard from "../components/booking/BookingProviderCard";
 import BookingSummarySidebar from "../components/booking/BookingSummarySidebar";
 import { providers } from "../data/providers";
 import type { BookingData } from "../types/booking";
+import type { BookingErrors } from "../utils/bookingValidation";
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -25,7 +26,7 @@ const BookingPage = () => {
     );
   }
 
-  const [bookingData, setBookingData] = useState<BookingData>({
+  const defaultBookingData: BookingData = {
     providerId: provider.id,
     providerName: provider.name,
     service: provider.services[0] || "",
@@ -35,7 +36,27 @@ const BookingPage = () => {
     address: "",
     paymentMethod: "Cash after service",
     notes: "",
+  };
+
+  const [bookingData, setBookingData] = useState<BookingData>(() => {
+    const savedBooking = localStorage.getItem(`booking-${provider.id}`);
+
+    if (savedBooking) {
+      try {
+        return JSON.parse(savedBooking) as BookingData;
+      } catch {
+        return defaultBookingData;
+      }
+    }
+
+    return defaultBookingData;
   });
+
+  const [errors, setErrors] = useState<BookingErrors>({});
+
+  useEffect(() => {
+    localStorage.setItem(`booking-${provider.id}`, JSON.stringify(bookingData));
+  }, [bookingData, provider.id]);
 
   return (
     <div className="space-y-8 py-6">
@@ -63,6 +84,7 @@ const BookingPage = () => {
           <BookingFormSection
             serviceOptions={provider.services}
             bookingData={bookingData}
+            errors={errors}
             setBookingData={setBookingData}
           />
 
@@ -72,7 +94,12 @@ const BookingPage = () => {
           />
         </div>
 
-        <BookingSummarySidebar provider={provider} bookingData={bookingData} />
+        <BookingSummarySidebar
+          provider={provider}
+          bookingData={bookingData}
+          errors={errors}
+          setErrors={setErrors}
+        />
       </div>
     </div>
   );

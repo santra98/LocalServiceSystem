@@ -1,9 +1,16 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { BookingData } from "../types/booking";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
   const bookingData = location.state as BookingData | undefined;
+
+  useEffect(() => {
+    if (bookingData?.providerId) {
+      localStorage.removeItem(`booking-${bookingData.providerId}`);
+    }
+  }, [bookingData]);
 
   if (!bookingData) {
     return (

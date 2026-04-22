@@ -15,6 +15,21 @@ const Navbar = () => {
           <Link to="/services" className="transition hover:text-primary">
             Services
           </Link>
+          <Link
+            to="/customer/dashboard"
+            className="transition hover:text-primary"
+          >
+            Customer Dashboard
+          </Link>
+          <Link
+            to="/provider/dashboard"
+            className="transition hover:text-primary"
+          >
+            Provider Dashboard
+          </Link>
+          <Link to="/admin/dashboard" className="transition hover:text-primary">
+            Admin Dashboard
+          </Link>
         </nav>
       </div>
     </header>

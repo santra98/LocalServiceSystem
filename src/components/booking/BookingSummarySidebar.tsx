@@ -2,28 +2,34 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { BookingData } from "../../types/booking";
 import type { Provider } from "../../types/provider";
+import type { BookingErrors } from "../../utils/bookingValidation";
+import { validateBooking } from "../../utils/bookingValidation";
 
 interface BookingSummarySidebarProps {
   provider: Provider;
   bookingData: BookingData;
+  errors: BookingErrors;
+  setErrors: React.Dispatch<React.SetStateAction<BookingErrors>>;
 }
 
 const BookingSummarySidebar = ({
   provider,
   bookingData,
+  errors,
+  setErrors,
 }: BookingSummarySidebarProps) => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isValid =
-    bookingData.service.trim() &&
-    bookingData.date.trim() &&
-    bookingData.time.trim() &&
-    bookingData.phone.trim() &&
-    bookingData.address.trim();
+  const hasErrors = Object.keys(errors).length > 0;
 
   const handleConfirmBooking = () => {
-    if (!isValid || isSubmitting) return;
+    const validationErrors = validateBooking(bookingData);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0 || isSubmitting) {
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -90,12 +96,12 @@ const BookingSummarySidebar = ({
       <div className="mt-6 space-y-3">
         <button
           type="button"
-          disabled={!isValid || isSubmitting}
           onClick={handleConfirmBooking}
+          disabled={isSubmitting}
           className={`w-full rounded-xl px-5 py-3 text-sm font-semibold text-white transition ${
-            isValid && !isSubmitting
-              ? "bg-primary hover:bg-primary-hover"
-              : "cursor-not-allowed bg-gray-400"
+            isSubmitting
+              ? "cursor-not-allowed bg-gray-400"
+              : "bg-primary hover:bg-primary-hover"
           }`}
         >
           {isSubmitting ? "Processing..." : "Confirm Booking"}
@@ -109,14 +115,13 @@ const BookingSummarySidebar = ({
         </Link>
       </div>
 
-      {!isValid && (
-        <p className="mt-4 text-xs leading-5 text-text-secondary">
-          Please fill service, date, time, phone number, and address before
-          confirming.
+      {hasErrors && (
+        <p className="mt-4 text-xs leading-5 text-red-600">
+          Please fix the highlighted fields before confirming.
         </p>
       )}
 
-      {isValid && (
+      {!hasErrors && (
         <p className="mt-4 text-xs leading-5 text-text-secondary">
           Review your details and confirm the booking.
         </p>

@@ -5,6 +5,9 @@ import ProviderDetailsPage from "../pages/ProviderDetailsPage";
 import MainLayout from "../components/layout/MainLayout";
 import BookingConfirmationPage from "../pages/BookingConfirmationPage";
 import BookingPage from "../pages/BookingPage";
+import CustomerDashboardPage from "../pages/CustomerDashboardPage";
+import ProviderDashboardPage from "../pages/ProviderDashboardPage";
+import AdminDashboardPage from "../pages/AdminDashboardPage";
 
 const AppRoutes = () => {
   return (
@@ -19,6 +22,15 @@ const AppRoutes = () => {
             path="/booking/confirmation"
             element={<BookingConfirmationPage />}
           />
+          <Route
+            path="/customer/dashboard"
+            element={<CustomerDashboardPage />}
+          />
+          <Route
+            path="/provider/dashboard"
+            element={<ProviderDashboardPage />}
+          />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
