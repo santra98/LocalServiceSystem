@@ -1,4 +1,6 @@
 import type { CustomerBooking } from "../../types/customerBooking";
+import EmptyState from "../ui/EmptyState";
+import SectionHeader from "../ui/SectionHeader";
 import CustomerBookingCard from "./CustomerBookingCard";
 
 interface CustomerBookingsSectionProps {
@@ -6,6 +8,8 @@ interface CustomerBookingsSectionProps {
   description: string;
   bookings: CustomerBooking[];
   emptyMessage: string;
+  onCancel?: (booking: CustomerBooking) => void;
+  onViewDetails?: (booking: CustomerBooking) => void;
 }
 
 const CustomerBookingsSection = ({
@@ -13,25 +17,29 @@ const CustomerBookingsSection = ({
   description,
   bookings,
   emptyMessage,
+  onCancel,
+  onViewDetails,
 }: CustomerBookingsSectionProps) => {
   return (
     <section className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
-        <p className="mt-2 text-sm text-text-secondary">{description}</p>
-      </div>
+      <SectionHeader title={title} description={description} />
 
       {bookings.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border-soft bg-surface px-6 py-12 text-center shadow-sm">
-          <h3 className="text-xl font-semibold text-text-primary">
-            Nothing here yet
-          </h3>
-          <p className="mt-2 text-sm text-text-secondary">{emptyMessage}</p>
-        </div>
+        <EmptyState
+          title="Nothing here yet"
+          description={emptyMessage}
+          actionLabel="Browse Services"
+          actionTo="/services"
+        />
       ) : (
         <div className="space-y-5">
           {bookings.map((booking) => (
-            <CustomerBookingCard key={booking.id} booking={booking} />
+            <CustomerBookingCard
+              key={booking.id}
+              booking={booking}
+              onCancel={onCancel}
+              onViewDetails={onViewDetails}
+            />
           ))}
         </div>
       )}

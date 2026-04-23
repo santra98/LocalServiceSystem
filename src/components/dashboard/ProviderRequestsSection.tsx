@@ -1,4 +1,6 @@
 import type { ProviderBookingRequest } from "../../types/providerDashboard";
+import EmptyState from "../ui/EmptyState";
+import SectionHeader from "../ui/SectionHeader";
 import ProviderRequestCard from "./ProviderRequestCard";
 
 interface ProviderRequestsSectionProps {
@@ -8,6 +10,7 @@ interface ProviderRequestsSectionProps {
   emptyMessage: string;
   onAccept?: (request: ProviderBookingRequest) => void;
   onReject?: (request: ProviderBookingRequest) => void;
+  onViewDetails?: (request: ProviderBookingRequest) => void;
 }
 
 const ProviderRequestsSection = ({
@@ -17,21 +20,19 @@ const ProviderRequestsSection = ({
   emptyMessage,
   onAccept,
   onReject,
+  onViewDetails,
 }: ProviderRequestsSectionProps) => {
   return (
     <section className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold text-text-primary">{title}</h2>
-        <p className="mt-2 text-sm text-text-secondary">{description}</p>
-      </div>
+      <SectionHeader title={title} description={description} />
 
       {requests.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border-soft bg-surface px-6 py-12 text-center shadow-sm">
-          <h3 className="text-xl font-semibold text-text-primary">
-            Nothing here yet
-          </h3>
-          <p className="mt-2 text-sm text-text-secondary">{emptyMessage}</p>
-        </div>
+        <EmptyState
+          title="Nothing here yet"
+          description={emptyMessage}
+          actionLabel="Go to Dashboard"
+          actionTo="/provider/dashboard"
+        />
       ) : (
         <div className="space-y-5">
           {requests.map((request) => (
@@ -40,6 +41,7 @@ const ProviderRequestsSection = ({
               request={request}
               onAccept={onAccept}
               onReject={onReject}
+              onViewDetails={onViewDetails}
             />
           ))}
         </div>

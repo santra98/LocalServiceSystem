@@ -3,6 +3,7 @@ import type {
   AdminReportedIssue,
   PendingProviderApproval,
 } from "../../types/adminDashboard";
+import StatCard from "../ui/StatCard";
 
 interface AdminStatsProps {
   approvals: PendingProviderApproval[];
@@ -24,24 +25,37 @@ const AdminStats = ({ approvals, recentBookings, issues }: AdminStatsProps) => {
   );
 
   const stats = [
-    { label: "Pending approvals", value: pendingApprovals },
-    { label: "Active issues", value: activeIssues },
-    { label: "Completed bookings", value: completedBookings },
-    { label: "Booking value", value: `₹${bookingValue}` },
+    {
+      label: "Pending approvals",
+      value: pendingApprovals,
+      hint: "Providers waiting for review",
+    },
+    {
+      label: "Active issues",
+      value: activeIssues,
+      hint: "Open or in-review platform issues",
+    },
+    {
+      label: "Completed bookings",
+      value: completedBookings,
+      hint: "Recently finished services",
+    },
+    {
+      label: "Booking value",
+      value: `₹${bookingValue}`,
+      hint: "Recent booking volume",
+    },
   ];
 
   return (
     <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => (
-        <article
+        <StatCard
           key={stat.label}
-          className="rounded-xl border border-border-soft bg-surface p-5 shadow-sm"
-        >
-          <p className="text-sm text-text-secondary">{stat.label}</p>
-          <h2 className="mt-3 text-3xl font-bold text-text-primary">
-            {stat.value}
-          </h2>
-        </article>
+          label={stat.label}
+          value={stat.value}
+          hint={stat.hint}
+        />
       ))}
     </section>
   );

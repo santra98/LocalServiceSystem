@@ -2,26 +2,23 @@ import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { BookingData } from "../types/booking";
 import {
-  addCustomerBooking,
-  getStoredCustomerBookings,
-} from "../utils/customerBookingStorage";
-import { mapBookingToCustomerBooking } from "../utils/mapBookingToCustomerBooking";
-import {
-  addProviderRequest,
-  getStoredProviderRequests,
-} from "../utils/providerRequestStorage";
-import { mapBookingToProviderRequest } from "../utils/mapBookingToProviderRequest";
+  addPlatformBooking,
+  getStoredPlatformBookings,
+} from "../utils/platformBookingStorage";
+import { mapBookingToPlatformBooking } from "../utils/mapBookingToPlatformBooking";
+import { useToast } from "../context/ToastContext";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
+  const { showToast } = useToast();
   const bookingData = location.state as BookingData | undefined;
 
   useEffect(() => {
     if (!bookingData) return;
 
-    const existingCustomerBookings = getStoredCustomerBookings();
+    const existingPlatformBookings = getStoredPlatformBookings();
 
-    const customerBookingExists = existingCustomerBookings.some(
+    const alreadyExists = existingPlatformBookings.some(
       (booking) =>
         booking.providerId === bookingData.providerId &&
         booking.service === bookingData.service &&
@@ -30,36 +27,21 @@ const BookingConfirmationPage = () => {
         booking.address === bookingData.address,
     );
 
-    if (!customerBookingExists) {
-      const mappedCustomerBooking = mapBookingToCustomerBooking(bookingData);
-      addCustomerBooking(mappedCustomerBooking);
-    }
-
-    const existingProviderRequests = getStoredProviderRequests();
-
-    const providerRequestExists = existingProviderRequests.some(
-      (request) =>
-        request.service === bookingData.service &&
-        request.date === bookingData.date &&
-        request.time === bookingData.time &&
-        request.address === bookingData.address &&
-        request.phone === bookingData.phone,
-    );
-
-    if (!providerRequestExists) {
-      const mappedProviderRequest = mapBookingToProviderRequest(bookingData);
-      addProviderRequest(mappedProviderRequest);
+    if (!alreadyExists) {
+      const mappedBooking = mapBookingToPlatformBooking(bookingData);
+      addPlatformBooking(mappedBooking);
+      showToast("Booking created successfully.", "success");
     }
 
     if (bookingData.providerId) {
       localStorage.removeItem(`booking-${bookingData.providerId}`);
     }
-  }, [bookingData]);
+  }, [bookingData, showToast]);
 
   if (!bookingData) {
     return (
       <div className="py-6">
-        <section className="mx-auto max-w-3xl rounded-xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
+        <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
           <h1 className="text-3xl font-bold text-text-primary">
             No booking data found
           </h1>
@@ -83,7 +65,7 @@ const BookingConfirmationPage = () => {
 
   return (
     <div className="py-6">
-      <section className="mx-auto max-w-3xl rounded-xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
+      <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-light text-3xl">
           ✅
         </div>

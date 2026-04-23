@@ -1,16 +1,19 @@
 import StatusBadge from "../ui/StatusBadge";
 import type { ProviderBookingRequest } from "../../types/providerDashboard";
+import InfoChip from "../ui/InfoChip";
 
 interface ProviderRequestCardProps {
   request: ProviderBookingRequest;
   onAccept?: (request: ProviderBookingRequest) => void;
   onReject?: (request: ProviderBookingRequest) => void;
+  onViewDetails?: (request: ProviderBookingRequest) => void;
 }
 
 const ProviderRequestCard = ({
   request,
   onAccept,
   onReject,
+  onViewDetails,
 }: ProviderRequestCardProps) => {
   const canTakeAction = request.status === "pending";
 
@@ -25,9 +28,9 @@ const ProviderRequestCard = ({
             <StatusBadge status={request.status} />
           </div>
 
-          <p className="mt-2 text-sm font-medium text-primary">
-            {request.service}
-          </p>
+          <div className="mt-2">
+            <InfoChip label={request.service} />
+          </div>
 
           <p className="mt-3 text-sm leading-6 text-text-secondary">
             Booking request from customer for scheduled service.
@@ -80,6 +83,14 @@ const ProviderRequestCard = ({
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => onViewDetails?.(request)}
+          className="rounded-xl border border-border-soft px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-soft"
+        >
+          View Details
+        </button>
+
         <button
           type="button"
           className="rounded-xl border border-border-soft px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-soft"

@@ -1,14 +1,24 @@
 import { Link } from "react-router-dom";
 import type { CustomerBooking } from "../../types/customerBooking";
 import StatusBadge from "../ui/StatusBadge";
+import InfoChip from "../ui/InfoChip";
 
 interface CustomerBookingCardProps {
   booking: CustomerBooking;
+  onCancel?: (booking: CustomerBooking) => void;
+  onViewDetails?: (booking: CustomerBooking) => void;
 }
 
-const CustomerBookingCard = ({ booking }: CustomerBookingCardProps) => {
+const CustomerBookingCard = ({
+  booking,
+  onCancel,
+  onViewDetails,
+}: CustomerBookingCardProps) => {
+  const canCancel =
+    booking.status === "pending" || booking.status === "confirmed";
+
   return (
-    <article className="rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
+    <article className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -18,9 +28,9 @@ const CustomerBookingCard = ({ booking }: CustomerBookingCardProps) => {
             <StatusBadge status={booking.status} />
           </div>
 
-          <p className="mt-2 text-sm font-medium text-primary">
-            {booking.category}
-          </p>
+          <div className="mt-2">
+            <InfoChip label={booking.category} />
+          </div>
 
           <p className="mt-3 text-sm leading-6 text-text-secondary">
             {booking.service}
@@ -84,10 +94,21 @@ const CustomerBookingCard = ({ booking }: CustomerBookingCardProps) => {
 
         <button
           type="button"
+          onClick={() => onViewDetails?.(booking)}
           className="rounded-xl border border-border-soft px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-soft"
         >
           View Details
         </button>
+
+        {canCancel && (
+          <button
+            type="button"
+            onClick={() => onCancel?.(booking)}
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+          >
+            Cancel Booking
+          </button>
+        )}
       </div>
     </article>
   );

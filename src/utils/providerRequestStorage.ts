@@ -51,6 +51,42 @@ export const updateStoredProviderRequestStatus = ({
   saveStoredProviderRequests(updatedRequests);
 };
 
+export const updateStoredProviderRequestStatusByDetails = ({
+  service,
+  date,
+  time,
+  address,
+  phone,
+  status,
+}: {
+  service: string;
+  date: string;
+  time: string;
+  address: string;
+  phone?: string;
+  status: ProviderRequestStatus;
+}): void => {
+  const existingRequests = getStoredProviderRequests();
+
+  const updatedRequests = existingRequests.map((request) => {
+    const isMatch =
+      request.service === service &&
+      request.date === date &&
+      request.time === time &&
+      request.address === address &&
+      (phone ? request.phone === phone : true);
+
+    if (!isMatch) return request;
+
+    return {
+      ...request,
+      status,
+    };
+  });
+
+  saveStoredProviderRequests(updatedRequests);
+};
+
 export const clearStoredProviderRequests = (): void => {
   localStorage.removeItem(PROVIDER_REQUESTS_STORAGE_KEY);
 };

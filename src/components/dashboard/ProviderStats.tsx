@@ -1,4 +1,5 @@
 import type { ProviderBookingRequest } from "../../types/providerDashboard";
+import StatCard from "../ui/StatCard";
 
 interface ProviderStatsProps {
   requests: ProviderBookingRequest[];
@@ -25,33 +26,34 @@ const ProviderStats = ({ requests }: ProviderStatsProps) => {
     {
       label: "Pending requests",
       value: pendingCount,
+      hint: "Waiting for provider action",
     },
     {
       label: "Confirmed jobs",
       value: confirmedCount,
+      hint: "Accepted upcoming services",
     },
     {
       label: "Completed jobs",
       value: completedCount,
+      hint: "Finished provider work",
     },
     {
       label: "Total earnings",
       value: `₹${totalEarnings}`,
+      hint: "From completed jobs",
     },
   ];
 
   return (
     <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => (
-        <article
+        <StatCard
           key={stat.label}
-          className="rounded-xl border border-border-soft bg-surface p-5 shadow-sm"
-        >
-          <p className="text-sm text-text-secondary">{stat.label}</p>
-          <h2 className="mt-3 text-3xl font-bold text-text-primary">
-            {stat.value}
-          </h2>
-        </article>
+          label={stat.label}
+          value={stat.value}
+          hint={stat.hint}
+        />
       ))}
     </section>
   );
