@@ -12,7 +12,7 @@ const BookingExtrasSection = ({
   setBookingData,
 }: BookingExtrasSectionProps) => {
   return (
-    <section className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
+    <section className="rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-text-primary">
         Payment & preferences
       </h2>

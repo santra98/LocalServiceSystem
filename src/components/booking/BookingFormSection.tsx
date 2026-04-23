@@ -18,7 +18,7 @@ const BookingFormSection = ({
   setBookingData,
 }: BookingFormSectionProps) => {
   return (
-    <section className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
+    <section className="rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-text-primary">Booking details</h2>
       <p className="mt-2 text-sm text-text-secondary">
         Choose the service, preferred time and basic appointment details.

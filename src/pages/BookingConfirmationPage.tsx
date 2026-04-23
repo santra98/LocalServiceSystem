@@ -59,7 +59,7 @@ const BookingConfirmationPage = () => {
   if (!bookingData) {
     return (
       <div className="py-6">
-        <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
+        <section className="mx-auto max-w-3xl rounded-xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
           <h1 className="text-3xl font-bold text-text-primary">
             No booking data found
           </h1>
@@ -83,7 +83,7 @@ const BookingConfirmationPage = () => {
 
   return (
     <div className="py-6">
-      <section className="mx-auto max-w-3xl rounded-3xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
+      <section className="mx-auto max-w-3xl rounded-xl border border-border-soft bg-surface px-6 py-12 text-center shadow-sm md:px-10">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-light text-3xl">
           ✅
         </div>

@@ -6,7 +6,7 @@ interface BookingProviderCardProps {
 
 const BookingProviderCard = ({ provider }: BookingProviderCardProps) => {
   return (
-    <section className="overflow-hidden rounded-3xl border border-border-soft bg-surface shadow-sm">
+    <section className="overflow-hidden rounded-xl border border-border-soft bg-surface shadow-sm">
       <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
         <div className="h-full min-h-[200px]">
           <img

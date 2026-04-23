@@ -11,7 +11,7 @@ const AuthLayout = () => {
           ← Back to Home
         </Link>
 
-        <div className="mt-8 grid overflow-hidden rounded-[2rem] border border-border-soft bg-surface shadow-sm lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mt-8 grid overflow-hidden rounded-xl border border-border-soft bg-surface shadow-sm lg:grid-cols-[1.05fr_0.95fr]">
           <div className="hidden bg-primary px-10 py-12 text-white lg:flex lg:flex-col lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/70">

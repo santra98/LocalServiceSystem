@@ -67,7 +67,7 @@ const BookingPage = () => {
         ← Back to Provider Details
       </Link>
 
-      <div className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
+      <div className="rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
         <h1 className="text-3xl font-bold text-text-primary">
           Complete your booking
         </h1>

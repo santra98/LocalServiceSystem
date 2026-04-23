@@ -7,7 +7,7 @@ interface BookingSummaryCardProps {
 
 const BookingSummaryCard = ({ provider }: BookingSummaryCardProps) => {
   return (
-    <aside className="sticky top-24 rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
+    <aside className="sticky top-24 rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-text-primary">
         Book this service
       </h2>
