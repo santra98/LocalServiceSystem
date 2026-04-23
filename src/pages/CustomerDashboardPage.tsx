@@ -1,14 +1,26 @@
+import { useMemo } from "react";
 import CustomerBookingsSection from "../components/dashboard/CustomerBookingsSection";
 import CustomerProfileCard from "../components/dashboard/CustomerProfileCard";
 import CustomerStats from "../components/dashboard/CustomerStats";
-import { customerBookings } from "../data/customerBookings";
+import { customerBookings as mockCustomerBookings } from "../data/customerBookings";
+import { getStoredCustomerBookings } from "../utils/customerBookingStorage";
 
 const CustomerDashboardPage = () => {
-  const upcomingBookings = customerBookings.filter(
+  const storedBookings = getStoredCustomerBookings();
+
+  const allBookings = useMemo(() => {
+    return [...storedBookings, ...mockCustomerBookings].sort((a, b) => {
+      const firstDate = new Date(a.date).getTime();
+      const secondDate = new Date(b.date).getTime();
+      return secondDate - firstDate;
+    });
+  }, [storedBookings]);
+
+  const upcomingBookings = allBookings.filter(
     (booking) => booking.status === "pending" || booking.status === "confirmed",
   );
 
-  const pastBookings = customerBookings.filter(
+  const pastBookings = allBookings.filter(
     (booking) =>
       booking.status === "completed" || booking.status === "cancelled",
   );
@@ -17,7 +29,7 @@ const CustomerDashboardPage = () => {
     <div className="space-y-8 py-6">
       <CustomerProfileCard />
 
-      <CustomerStats bookings={customerBookings} />
+      <CustomerStats bookings={allBookings} />
 
       <CustomerBookingsSection
         title="Upcoming bookings"

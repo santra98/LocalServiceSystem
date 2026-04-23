@@ -6,6 +6,8 @@ interface ProviderRequestsSectionProps {
   description: string;
   requests: ProviderBookingRequest[];
   emptyMessage: string;
+  onAccept?: (request: ProviderBookingRequest) => void;
+  onReject?: (request: ProviderBookingRequest) => void;
 }
 
 const ProviderRequestsSection = ({
@@ -13,6 +15,8 @@ const ProviderRequestsSection = ({
   description,
   requests,
   emptyMessage,
+  onAccept,
+  onReject,
 }: ProviderRequestsSectionProps) => {
   return (
     <section className="space-y-5">
@@ -22,7 +26,7 @@ const ProviderRequestsSection = ({
       </div>
 
       {requests.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border-soft bg-surface px-6 py-12 text-center shadow-sm">
+        <div className="rounded-3xl border border-dashed border-border-soft bg-surface px-6 py-12 text-center shadow-sm">
           <h3 className="text-xl font-semibold text-text-primary">
             Nothing here yet
           </h3>
@@ -31,7 +35,12 @@ const ProviderRequestsSection = ({
       ) : (
         <div className="space-y-5">
           {requests.map((request) => (
-            <ProviderRequestCard key={request.id} request={request} />
+            <ProviderRequestCard
+              key={request.id}
+              request={request}
+              onAccept={onAccept}
+              onReject={onReject}
+            />
           ))}
         </div>
       )}
