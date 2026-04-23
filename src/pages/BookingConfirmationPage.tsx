@@ -1,13 +1,57 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { BookingData } from "../types/booking";
+import {
+  addCustomerBooking,
+  getStoredCustomerBookings,
+} from "../utils/customerBookingStorage";
+import { mapBookingToCustomerBooking } from "../utils/mapBookingToCustomerBooking";
+import {
+  addProviderRequest,
+  getStoredProviderRequests,
+} from "../utils/providerRequestStorage";
+import { mapBookingToProviderRequest } from "../utils/mapBookingToProviderRequest";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
   const bookingData = location.state as BookingData | undefined;
 
   useEffect(() => {
-    if (bookingData?.providerId) {
+    if (!bookingData) return;
+
+    const existingCustomerBookings = getStoredCustomerBookings();
+
+    const customerBookingExists = existingCustomerBookings.some(
+      (booking) =>
+        booking.providerId === bookingData.providerId &&
+        booking.service === bookingData.service &&
+        booking.date === bookingData.date &&
+        booking.time === bookingData.time &&
+        booking.address === bookingData.address,
+    );
+
+    if (!customerBookingExists) {
+      const mappedCustomerBooking = mapBookingToCustomerBooking(bookingData);
+      addCustomerBooking(mappedCustomerBooking);
+    }
+
+    const existingProviderRequests = getStoredProviderRequests();
+
+    const providerRequestExists = existingProviderRequests.some(
+      (request) =>
+        request.service === bookingData.service &&
+        request.date === bookingData.date &&
+        request.time === bookingData.time &&
+        request.address === bookingData.address &&
+        request.phone === bookingData.phone,
+    );
+
+    if (!providerRequestExists) {
+      const mappedProviderRequest = mapBookingToProviderRequest(bookingData);
+      addProviderRequest(mappedProviderRequest);
+    }
+
+    if (bookingData.providerId) {
       localStorage.removeItem(`booking-${bookingData.providerId}`);
     }
   }, [bookingData]);
@@ -72,17 +116,17 @@ const BookingConfirmationPage = () => {
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
-            to="/services"
+            to="/customer/dashboard"
             className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
           >
-            Browse More Services
+            View My Bookings
           </Link>
 
           <Link
-            to="/"
+            to="/services"
             className="inline-flex items-center justify-center rounded-xl border border-border-soft px-6 py-3 text-sm font-semibold text-text-primary transition hover:bg-soft"
           >
-            Go to Home
+            Browse More Services
           </Link>
         </div>
       </section>

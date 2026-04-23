@@ -3,11 +3,19 @@ import type { ProviderBookingRequest } from "../../types/providerDashboard";
 
 interface ProviderRequestCardProps {
   request: ProviderBookingRequest;
+  onAccept?: (request: ProviderBookingRequest) => void;
+  onReject?: (request: ProviderBookingRequest) => void;
 }
 
-const ProviderRequestCard = ({ request }: ProviderRequestCardProps) => {
+const ProviderRequestCard = ({
+  request,
+  onAccept,
+  onReject,
+}: ProviderRequestCardProps) => {
+  const canTakeAction = request.status === "pending";
+
   return (
-    <article className="rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
+    <article className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -74,17 +82,30 @@ const ProviderRequestCard = ({ request }: ProviderRequestCardProps) => {
       <div className="mt-6 flex flex-wrap gap-3">
         <button
           type="button"
-          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
-        >
-          View Request
-        </button>
-
-        <button
-          type="button"
           className="rounded-xl border border-border-soft px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-soft"
         >
           Contact Customer
         </button>
+
+        {canTakeAction && (
+          <>
+            <button
+              type="button"
+              onClick={() => onAccept?.(request)}
+              className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Accept
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onReject?.(request)}
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+            >
+              Reject
+            </button>
+          </>
+        )}
       </div>
     </article>
   );
