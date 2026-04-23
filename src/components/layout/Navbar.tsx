@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { getStoredNotifications } from "../../utils/notificationStorage";
 
 const Navbar = () => {
   const { user, isAuthenticated, logout, getDashboardRouteByRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const items = getStoredNotifications();
+    const count = items.filter((n) => !n.isRead).length;
+    setUnreadCount(count);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -66,6 +73,26 @@ const Navbar = () => {
                   }`}
                 >
                   Dashboard
+                </Link>
+
+                <Link
+                  to="/profile"
+                  className={`text-sm font-medium transition ${
+                    isActive("/profile")
+                      ? "text-primary"
+                      : "text-text-secondary hover:text-primary"
+                  }`}
+                >
+                  Profile
+                </Link>
+
+                <Link to="/notifications" className="relative ...">
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-3 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
                 </Link>
 
                 <span className="inline-flex rounded-full bg-soft px-3 py-1 text-sm font-medium text-text-primary">
@@ -153,6 +180,30 @@ const Navbar = () => {
                     }`}
                   >
                     Dashboard
+                  </Link>
+
+                  <Link
+                    to="/profile"
+                    onClick={handleMobileNavClick}
+                    className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                      isActive("/profile")
+                        ? "bg-accent-light text-primary"
+                        : "text-text-primary hover:bg-soft"
+                    }`}
+                  >
+                    Profile
+                  </Link>
+
+                  <Link
+                    to="/notifications"
+                    onClick={handleMobileNavClick}
+                    className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                      isActive("/notifications")
+                        ? "bg-accent-light text-primary"
+                        : "text-text-primary hover:bg-soft"
+                    }`}
+                  >
+                    Notifications
                   </Link>
 
                   <div className="rounded-2xl bg-soft px-4 py-3">

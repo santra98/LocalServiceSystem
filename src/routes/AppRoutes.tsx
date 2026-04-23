@@ -14,6 +14,8 @@ import ProviderDetailsPage from "../pages/ProviderDetailsPage";
 import ServicesPage from "../pages/ServicesPage";
 import SignupPage from "../pages/SignupPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
+import ProfilePage from "../pages/ProfilePage";
+import NotificationsPage from "../pages/NotificationsPage";
 
 const AppRoutes = () => {
   return (
@@ -53,6 +55,15 @@ const AppRoutes = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        </Route>
+
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["customer", "provider", "admin"]} />
+          }
+        >
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

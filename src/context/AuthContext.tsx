@@ -14,6 +14,7 @@ interface AuthContextValue {
   login: (user: AuthUser) => void;
   signup: (user: AuthUser) => void;
   logout: () => void;
+  updateUser: (updates: Partial<AuthUser>) => void;
   getDashboardRouteByRole: (role: UserRole) => string;
 }
 
@@ -41,19 +42,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const login = (nextUser: AuthUser) => {
+  const persistUser = (nextUser: AuthUser | null) => {
     setUser(nextUser);
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
+
+    if (nextUser) {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  };
+
+  const login = (nextUser: AuthUser) => {
+    persistUser(nextUser);
   };
 
   const signup = (nextUser: AuthUser) => {
-    setUser(nextUser);
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(nextUser));
+    persistUser(nextUser);
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    persistUser(null);
+  };
+
+  const updateUser = (updates: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+
+      const updatedUser = {
+        ...prev,
+        ...updates,
+      };
+
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updatedUser));
+      return updatedUser;
+    });
   };
 
   const getDashboardRouteByRole = (role: UserRole) => {
@@ -76,6 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       login,
       signup,
       logout,
+      updateUser,
       getDashboardRouteByRole,
     }),
     [user],
