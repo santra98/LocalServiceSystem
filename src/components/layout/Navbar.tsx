@@ -2,18 +2,19 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getStoredNotifications } from "../../utils/notificationStorage";
+import { useNotifications } from "../../context/NotificationsContext";
 
 const Navbar = () => {
   const { user, isAuthenticated, logout, getDashboardRouteByRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { unreadCount } = useNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const items = getStoredNotifications();
     const count = items.filter((n) => !n.isRead).length;
-    setUnreadCount(count);
+    // setUnreadCount(count);
   }, []);
 
   const handleLogout = () => {
@@ -86,10 +87,17 @@ const Navbar = () => {
                   Profile
                 </Link>
 
-                <Link to="/notifications" className="relative ...">
+                <Link
+                  to="/notifications"
+                  className={`relative text-sm font-medium transition ${
+                    isActive("/notifications")
+                      ? "text-primary"
+                      : "text-text-secondary hover:text-primary"
+                  }`}
+                >
                   Notifications
                   {unreadCount > 0 && (
-                    <span className="absolute -top-2 -right-3 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="absolute -right-4 -top-2 inline-flex min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
                       {unreadCount}
                     </span>
                   )}
@@ -197,13 +205,19 @@ const Navbar = () => {
                   <Link
                     to="/notifications"
                     onClick={handleMobileNavClick}
-                    className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                    className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition ${
                       isActive("/notifications")
                         ? "bg-accent-light text-primary"
                         : "text-text-primary hover:bg-soft"
                     }`}
                   >
-                    Notifications
+                    <span>Notifications</span>
+
+                    {unreadCount > 0 && (
+                      <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        {unreadCount}
+                      </span>
+                    )}
                   </Link>
 
                   <div className="rounded-2xl bg-soft px-4 py-3">
