@@ -5,35 +5,23 @@ import CustomerBookingsSection from "../components/dashboard/CustomerBookingsSec
 import CustomerProfileCard from "../components/dashboard/CustomerProfileCard";
 import CustomerStats from "../components/dashboard/CustomerStats";
 import DashboardToolbar from "../components/dashboard/DashboardToolbar";
-import { customerBookings as mockCustomerBookings } from "../data/customerBookings";
 import type { CustomerBooking } from "../types/customerBooking";
-import { useToast } from "../context/ToastContext";
-import { mapPlatformBookingToCustomerBooking } from "../utils/mapPlatformBookingToCustomerBooking";
-
 import { useNotifications } from "../context/NotificationsContext";
-import { bookingService } from "../services/bookingService";
+import { useCustomerBookings } from "../hooks/useCustomerBookings";
 
 const CustomerDashboardPage = () => {
   const { notify } = useNotifications();
-  const [platformBookings, setPlatformBookings] = useState(
-    bookingService.getAll(),
-  );
+  const { allBookings, cancelBooking } = useCustomerBookings();
+
   const [bookingToCancel, setBookingToCancel] =
     useState<CustomerBooking | null>(null);
+
   const [selectedBooking, setSelectedBooking] =
     useState<CustomerBooking | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-
-  const derivedStoredBookings = useMemo(() => {
-    return platformBookings.map(mapPlatformBookingToCustomerBooking);
-  }, [platformBookings]);
-
-  const allBookings = useMemo(() => {
-    return [...derivedStoredBookings, ...mockCustomerBookings];
-  }, [derivedStoredBookings]);
 
   const filteredBookings = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -65,12 +53,7 @@ const CustomerDashboardPage = () => {
   const confirmCancelBooking = () => {
     if (!bookingToCancel) return;
 
-    const updatedBookings = bookingService.updateStatus(
-      bookingToCancel.id,
-      "cancelled",
-    );
-
-    setPlatformBookings(updatedBookings);
+    cancelBooking(bookingToCancel);
 
     notify({
       title: "Booking cancelled",
@@ -78,6 +61,7 @@ const CustomerDashboardPage = () => {
       type: "alert",
       toastType: "info",
     });
+
     setBookingToCancel(null);
   };
 

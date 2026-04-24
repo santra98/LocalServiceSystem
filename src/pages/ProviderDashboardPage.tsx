@@ -6,37 +6,26 @@ import ProviderProfileCard from "../components/dashboard/ProviderProfileCard";
 import ProviderRequestsSection from "../components/dashboard/ProviderRequestsSection";
 import ProviderStats from "../components/dashboard/ProviderStats";
 import DashboardToolbar from "../components/dashboard/DashboardToolbar";
-import { providerRequests as mockProviderRequests } from "../data/providerDashboard";
 import type { ProviderBookingRequest } from "../types/providerDashboard";
-import { useToast } from "../context/ToastContext";
-import { mapPlatformBookingToProviderRequest } from "../utils/mapPlatformBookingToProviderRequest";
-
 import { useNotifications } from "../context/NotificationsContext";
-import { bookingService } from "../services/bookingService";
+import { useProviderRequests } from "../hooks/useProviderRequests";
 
 const ProviderDashboardPage = () => {
   const { notify } = useNotifications();
-  const [platformBookings, setPlatformBookings] = useState(
-    bookingService.getAll(),
-  );
+  const { allProviderRequests, updateRequestStatus } = useProviderRequests();
+
   const [requestToAccept, setRequestToAccept] =
     useState<ProviderBookingRequest | null>(null);
+
   const [requestToReject, setRequestToReject] =
     useState<ProviderBookingRequest | null>(null);
+
   const [selectedRequest, setSelectedRequest] =
     useState<ProviderBookingRequest | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-
-  const derivedStoredRequests = useMemo(() => {
-    return platformBookings.map(mapPlatformBookingToProviderRequest);
-  }, [platformBookings]);
-
-  const allProviderRequests = useMemo(() => {
-    return [...derivedStoredRequests, ...mockProviderRequests];
-  }, [derivedStoredRequests]);
 
   const filteredRequests = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -65,33 +54,33 @@ const ProviderDashboardPage = () => {
     });
   }, [allProviderRequests, searchTerm, statusFilter, sortOrder]);
 
-  const updateRequestStatus = (
-    request: ProviderBookingRequest,
-    status: "confirmed" | "cancelled",
-  ) => {
-    const updatedBookings = bookingService.updateStatus(request.id, status);
-    setPlatformBookings(updatedBookings);
-
-    notify({
-      title: status === "confirmed" ? "Request accepted" : "Request rejected",
-      message:
-        status === "confirmed"
-          ? `${request.service} request has been accepted.`
-          : `${request.service} request has been rejected.`,
-      type: status === "confirmed" ? "request" : "alert",
-      toastType: status === "confirmed" ? "success" : "error",
-    });
-  };
-
   const confirmAcceptRequest = () => {
     if (!requestToAccept) return;
+
     updateRequestStatus(requestToAccept, "confirmed");
+
+    notify({
+      title: "Request accepted",
+      message: `${requestToAccept.service} request has been accepted.`,
+      type: "request",
+      toastType: "success",
+    });
+
     setRequestToAccept(null);
   };
 
   const confirmRejectRequest = () => {
     if (!requestToReject) return;
+
     updateRequestStatus(requestToReject, "cancelled");
+
+    notify({
+      title: "Request rejected",
+      message: `${requestToReject.service} request has been rejected.`,
+      type: "alert",
+      toastType: "error",
+    });
+
     setRequestToReject(null);
   };
 
