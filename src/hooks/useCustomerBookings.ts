@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { customerBookings as mockCustomerBookings } from "../data/customerBookings";
 import type { CustomerBooking } from "../types/customerBooking";
 import { bookingService } from "../services/bookingService";
@@ -20,36 +20,34 @@ export const useCustomerBookings = () => {
     return [...storedCustomerBookings, ...demoBookings];
   }, [storedCustomerBookings, demoBookings]);
 
-  const cancelBooking = (booking: CustomerBooking) => {
-    const existsInPlatform = platformBookings.some(
-      (item) => item.id === booking.id,
-    );
-
-    if (existsInPlatform) {
-      const updatedBookings = bookingService.updateStatus(
-        booking.id,
-        "cancelled",
+  const cancelBooking = useCallback(
+    (booking: CustomerBooking) => {
+      const existsInPlatform = platformBookings.some(
+        (item) => item.id === booking.id,
       );
 
-      setPlatformBookings(updatedBookings);
-      return;
-    }
+      if (existsInPlatform) {
+        const updatedBookings = bookingService.updateStatus(
+          booking.id,
+          "cancelled",
+        );
 
-    setDemoBookings((prev) =>
-      prev.map((item) =>
-        item.id === booking.id
-          ? {
-              ...item,
-              status: "cancelled",
-            }
-          : item,
-      ),
-    );
-  };
+        setPlatformBookings(updatedBookings);
+        return;
+      }
 
-  const refreshBookings = () => {
+      setDemoBookings((prev) =>
+        prev.map((item) =>
+          item.id === booking.id ? { ...item, status: "cancelled" } : item,
+        ),
+      );
+    },
+    [platformBookings],
+  );
+
+  const refreshBookings = useCallback(() => {
     setPlatformBookings(bookingService.getAll());
-  };
+  }, []);
 
   return {
     allBookings,

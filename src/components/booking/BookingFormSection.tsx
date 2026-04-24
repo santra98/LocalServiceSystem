@@ -2,7 +2,7 @@ import FormInput from "../ui/FormInput";
 import FormSelect from "../ui/FormSelect";
 import FormTextarea from "../ui/FormTextarea";
 import type { BookingData } from "../../types/booking";
-import type { BookingErrors } from "../../utils/bookingValidation";
+import type { validateBookingForm } from "../../utils/bookingValidation";
 
 interface BookingFormSectionProps {
   serviceOptions: string[];

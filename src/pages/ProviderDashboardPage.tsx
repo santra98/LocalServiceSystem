@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import ProviderRequestDetailsModal from "../components/dashboard/ProviderRequestDetailsModal";
 import ProviderEarningsSummary from "../components/dashboard/ProviderEarningsSummary";
@@ -53,7 +53,7 @@ const ProviderDashboardPage = () => {
     getDate: (r) => r.date,
   });
 
-  const confirmAcceptRequest = () => {
+  const confirmAcceptRequest = useCallback(() => {
     if (!requestToAccept) return;
 
     updateRequestStatus(requestToAccept, "confirmed");
@@ -66,9 +66,9 @@ const ProviderDashboardPage = () => {
     });
 
     setRequestToAccept(null);
-  };
+  }, [requestToAccept, updateRequestStatus, notify]);
 
-  const confirmRejectRequest = () => {
+  const confirmRejectRequest = useCallback(() => {
     if (!requestToReject) return;
 
     updateRequestStatus(requestToReject, "cancelled");
@@ -81,9 +81,9 @@ const ProviderDashboardPage = () => {
     });
 
     setRequestToReject(null);
-  };
+  }, [requestToReject, updateRequestStatus, notify]);
 
-  const confirmCompleteRequest = () => {
+  const confirmCompleteRequest = useCallback(() => {
     if (!requestToComplete) return;
 
     updateRequestStatus(requestToComplete, "completed");
@@ -96,7 +96,7 @@ const ProviderDashboardPage = () => {
     });
 
     setRequestToComplete(null);
-  };
+  }, [requestToComplete, updateRequestStatus, notify]);
 
   const pendingRequests = filteredRequests.filter(
     (request) => request.status === "pending",
@@ -117,6 +117,35 @@ const ProviderDashboardPage = () => {
       </div>
     );
   }
+
+  const handleOpenAcceptDialog = useCallback(
+    (request: ProviderBookingRequest) => {
+      setRequestToAccept(request);
+    },
+    [],
+  );
+
+  const handleOpenRejectDialog = useCallback(
+    (request: ProviderBookingRequest) => {
+      setRequestToReject(request);
+    },
+    [],
+  );
+
+  const handleOpenCompleteDialog = useCallback(
+    (request: ProviderBookingRequest) => {
+      setRequestToComplete(request);
+    },
+    [],
+  );
+
+  const handleViewDetails = useCallback((request: ProviderBookingRequest) => {
+    setSelectedRequest(request);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setSelectedRequest(null);
+  }, []);
 
   return (
     <>

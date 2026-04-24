@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { BookingData } from "../../types/booking";
 import type { Provider } from "../../types/provider";
 import type { BookingErrors } from "../../utils/bookingValidation";
-import { validateBooking } from "../../utils/bookingValidation";
+import { validateBookingForm } from "../../utils/bookingValidation";
 
 interface BookingSummarySidebarProps {
   provider: Provider;
@@ -24,20 +24,17 @@ const BookingSummarySidebar = ({
   const hasErrors = Object.keys(errors).length > 0;
 
   const handleConfirmBooking = () => {
-    const validationErrors = validateBooking(bookingData);
+    const validationErrors = validateBookingForm(bookingData);
+
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length > 0 || isSubmitting) {
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      navigate("/booking/confirmation", {
-        state: bookingData,
-      });
-    }, 800);
+    navigate("/booking-confirmation", {
+      state: bookingData,
+    });
   };
 
   return (

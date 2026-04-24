@@ -16,6 +16,9 @@ import type {
   PendingProviderApproval,
 } from "../types/adminDashboard";
 import { useNotifications } from "../context/NotificationsContext";
+import { useDebounce } from "../hooks/useDebounce";
+import { useDashboardFilters } from "../hooks/useDashboardFilters";
+import DashboardToolbar from "../components/dashboard/DashboardToolbar";
 
 const AdminDashboardPage = () => {
   const { notify } = useNotifications();
@@ -31,16 +34,34 @@ const AdminDashboardPage = () => {
 
   const [issueToResolve, setIssueToResolve] =
     useState<AdminReportedIssue | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const debouncedSearch = useDebounce(searchTerm, 400);
 
-  const activeIssues = useMemo(
-    () => issues.filter((issue) => issue.status !== "resolved"),
-    [issues],
-  );
+  const filteredApprovals = useDashboardFilters({
+    data: approvals,
+    searchTerm: debouncedSearch,
+    statusFilter: "all", // no status filter here
+    sortOrder,
+    getSearchText: (a) => `${a.providerName} ${a.category} ${a.location}`,
+    getStatus: () => "all",
+    getDate: (a) => a.submittedAt,
+  });
 
-  const resolvedIssues = useMemo(
-    () => issues.filter((issue) => issue.status === "resolved"),
-    [issues],
-  );
+  const filteredIssues = useDashboardFilters({
+    data: issues,
+    searchTerm: debouncedSearch,
+    statusFilter,
+    sortOrder,
+    getSearchText: (i) => `${i.title} ${i.reportedBy} ${i.category}`,
+    getStatus: (i) => i.status,
+    getDate: (i) => i.createdAt,
+  });
+
+  const activeIssues = filteredIssues.filter((i) => i.status !== "resolved");
+
+  const resolvedIssues = filteredIssues.filter((i) => i.status === "resolved");
 
   const confirmApproveProvider = () => {
     if (!approvalToApprove) return;
@@ -111,13 +132,36 @@ const AdminDashboardPage = () => {
           issues={issues}
         />
 
+        <DashboardToolbar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          statusValue={statusFilter}
+          onStatusChange={setStatusFilter}
+          sortValue={sortOrder}
+          onSortChange={setSortOrder}
+          resultCount={filteredIssues.length}
+          totalCount={issues.length}
+          onReset={() => {
+            setSearchTerm("");
+            setStatusFilter("all");
+            setSortOrder("newest");
+          }}
+          searchPlaceholder="Search providers, issues..."
+          statusOptions={[
+            { label: "All statuses", value: "all" },
+            { label: "Open", value: "open" },
+            { label: "In review", value: "in_review" },
+            { label: "Resolved", value: "resolved" },
+          ]}
+        />
+
         <AdminSection
           title="Pending provider approvals"
           description="Review newly submitted providers before they are activated on the platform."
           emptyMessage="There are no pending provider approvals right now."
-          itemsCount={approvals.length}
+          itemsCount={filteredApprovals.length}
         >
-          {approvals.map((approval) => (
+          {filteredApprovals.map((approval) => (
             <PendingApprovalCard
               key={approval.id}
               approval={approval}

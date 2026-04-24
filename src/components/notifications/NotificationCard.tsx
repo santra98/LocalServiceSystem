@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { NotificationItem } from "../../types/notification";
 
 interface NotificationCardProps {
@@ -110,4 +111,4 @@ const NotificationCard = ({
   );
 };
 
-export default NotificationCard;
+export default memo(NotificationCard);

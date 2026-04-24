@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { CustomerBooking } from "../../types/customerBooking";
 import StatusBadge from "../ui/StatusBadge";
 import InfoChip from "../ui/InfoChip";
+import { memo } from "react";
 
 interface CustomerBookingCardProps {
   booking: CustomerBooking;
@@ -114,4 +115,4 @@ const CustomerBookingCard = ({
   );
 };
 
-export default CustomerBookingCard;
+export default memo(CustomerBookingCard);

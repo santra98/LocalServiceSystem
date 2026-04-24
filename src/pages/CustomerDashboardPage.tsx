@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import CustomerBookingDetailsModal from "../components/dashboard/CustomerBookingDetailsModal";
 import CustomerBookingsSection from "../components/dashboard/CustomerBookingsSection";
@@ -47,7 +47,7 @@ const CustomerDashboardPage = () => {
     getDate: (b) => b.date,
   });
 
-  const confirmCancelBooking = () => {
+  const confirmCancelBooking = useCallback(() => {
     if (!bookingToCancel) return;
 
     cancelBooking(bookingToCancel);
@@ -60,7 +60,7 @@ const CustomerDashboardPage = () => {
     });
 
     setBookingToCancel(null);
-  };
+  }, [bookingToCancel, cancelBooking, notify]);
 
   const activeBookings = filteredBookings.filter(
     (booking) => booking.status === "pending" || booking.status === "confirmed",
@@ -81,6 +81,22 @@ const CustomerDashboardPage = () => {
       </div>
     );
   }
+
+  const handleOpenCancelDialog = useCallback((booking: CustomerBooking) => {
+    setBookingToCancel(booking);
+  }, []);
+
+  const handleViewDetails = useCallback((booking: CustomerBooking) => {
+    setSelectedBooking(booking);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setSelectedBooking(null);
+  }, []);
+
+  const handleCloseCancelDialog = useCallback(() => {
+    setBookingToCancel(null);
+  }, []);
 
   return (
     <>
@@ -118,8 +134,8 @@ const CustomerDashboardPage = () => {
           description="Track service requests that are pending or already confirmed."
           bookings={activeBookings}
           emptyMessage="No active bookings match your current search or filter."
-          onCancel={(booking) => setBookingToCancel(booking)}
-          onViewDetails={(booking) => setSelectedBooking(booking)}
+          onCancel={handleOpenCancelDialog}
+          onViewDetails={handleViewDetails}
         />
 
         <CustomerBookingsSection
@@ -127,7 +143,7 @@ const CustomerDashboardPage = () => {
           description="Review services that were successfully completed."
           bookings={completedBookings}
           emptyMessage="No completed bookings match your current search or filter."
-          onViewDetails={(booking) => setSelectedBooking(booking)}
+          onViewDetails={handleViewDetails}
         />
 
         <CustomerBookingsSection
@@ -135,7 +151,7 @@ const CustomerDashboardPage = () => {
           description="Review bookings that were cancelled before completion."
           bookings={cancelledBookings}
           emptyMessage="No cancelled bookings match your current search or filter."
-          onViewDetails={(booking) => setSelectedBooking(booking)}
+          onViewDetails={handleViewDetails}
         />
       </div>
 
@@ -147,13 +163,13 @@ const CustomerDashboardPage = () => {
         cancelLabel="Keep booking"
         confirmVariant="danger"
         onConfirm={confirmCancelBooking}
-        onCancel={() => setBookingToCancel(null)}
+        onCancel={handleCloseCancelDialog}
       />
 
       <CustomerBookingDetailsModal
         booking={selectedBooking}
         isOpen={!!selectedBooking}
-        onClose={() => setSelectedBooking(null)}
+        onClose={handleCloseDetails}
       />
     </>
   );

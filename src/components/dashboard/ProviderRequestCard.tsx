@@ -1,6 +1,7 @@
 import StatusBadge from "../ui/StatusBadge";
 import type { ProviderBookingRequest } from "../../types/providerDashboard";
 import InfoChip from "../ui/InfoChip";
+import { memo } from "react";
 
 interface ProviderRequestCardProps {
   request: ProviderBookingRequest;
@@ -135,4 +136,4 @@ const ProviderRequestCard = ({
   );
 };
 
-export default ProviderRequestCard;
+export default memo(ProviderRequestCard);

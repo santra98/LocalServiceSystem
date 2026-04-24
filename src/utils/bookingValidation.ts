@@ -6,9 +6,12 @@ export interface BookingErrors {
   time?: string;
   phone?: string;
   address?: string;
+  paymentMethod?: string;
 }
 
-export const validateBooking = (bookingData: BookingData): BookingErrors => {
+export const validateBookingForm = (
+  bookingData: BookingData,
+): BookingErrors => {
   const errors: BookingErrors = {};
 
   if (!bookingData.service.trim()) {
@@ -24,13 +27,17 @@ export const validateBooking = (bookingData: BookingData): BookingErrors => {
   }
 
   if (!bookingData.phone.trim()) {
-    errors.phone = "Please enter your contact number.";
-  } else if (!/^\d{10}$/.test(bookingData.phone.trim())) {
-    errors.phone = "Phone number must be 10 digits.";
+    errors.phone = "Please enter your phone number.";
+  } else if (bookingData.phone.trim().length < 10) {
+    errors.phone = "Please enter a valid phone number.";
   }
 
   if (!bookingData.address.trim()) {
-    errors.address = "Please enter the service address.";
+    errors.address = "Please enter your address.";
+  }
+
+  if (!bookingData.paymentMethod.trim()) {
+    errors.paymentMethod = "Please select a payment method.";
   }
 
   return errors;
