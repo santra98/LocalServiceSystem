@@ -7,19 +7,28 @@ import {
   type ReactNode,
 } from "react";
 import { getStoredPlatformBookings } from "../utils/platformBookingStorage";
-import {
-  getStoredNotifications,
-  saveNotifications,
-} from "../utils/notificationStorage";
+
 import { useAuth } from "./AuthContext";
 import type { NotificationItem, NotificationType } from "../types/notification";
+import { useToast } from "./ToastContext";
+import { notificationService } from "../services/notificationService";
 
 interface NotificationsContextValue {
   notifications: NotificationItem[];
   unreadCount: number;
   markAsRead: (id: string) => void;
+  markAsUnread: (id: string) => void;
   markAllAsRead: () => void;
+  deleteNotification: (id: string) => void;
+  clearAllNotifications: () => void;
   refreshNotifications: () => void;
+  addNotification: (item: Omit<NotificationItem, "id">) => void;
+  notify: (params: {
+    title: string;
+    message: string;
+    type: NotificationType;
+    toastType?: "success" | "error" | "info";
+  }) => void;
 }
 
 const NotificationsContext = createContext<
@@ -34,7 +43,57 @@ export const NotificationsProvider = ({
   children,
 }: NotificationsProviderProps) => {
   const { user, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  const addNotification = (item: Omit<NotificationItem, "id">) => {
+    const newNotification: NotificationItem = {
+      ...item,
+      id: `notif-${Date.now()}`,
+    };
+
+    const updated = notificationService.create(newNotification);
+    setNotifications(updated);
+  };
+
+  const markAsRead = (id: string) => {
+    const updated = notificationService.markAsRead(id);
+    setNotifications(updated);
+  };
+
+  const deleteNotification = (id: string) => {
+    const updated = notificationService.delete(id);
+    setNotifications(updated);
+  };
+
+  const clearAllNotifications = () => {
+    const updated = notificationService.clearAll();
+    setNotifications(updated);
+  };
+
+  const notify = ({
+    title,
+    message,
+    type,
+    toastType = "success",
+  }: {
+    title: string;
+    message: string;
+    type: NotificationType;
+    toastType?: "success" | "error" | "info";
+  }) => {
+    // 1. Add notification
+    addNotification({
+      title,
+      message,
+      createdAt: new Date().toISOString(),
+      type,
+      isRead: false,
+    });
+
+    // 2. Show toast
+    showToast(message, toastType);
+  };
 
   const generateNotifications = (): NotificationItem[] => {
     if (!user) return [];
@@ -133,7 +192,7 @@ export const NotificationsProvider = ({
       return;
     }
 
-    const stored = getStoredNotifications();
+    const stored = notificationService.getAll();
 
     if (stored.length > 0) {
       setNotifications(stored);
@@ -142,30 +201,21 @@ export const NotificationsProvider = ({
 
     const generated = generateNotifications();
     setNotifications(generated);
-    saveNotifications(generated);
+    notificationService.saveAll(generated);
   };
 
   useEffect(() => {
     refreshNotifications();
   }, [isAuthenticated, user?.role]);
 
-  const markAsRead = (id: string) => {
-    const updated = notifications.map((item) =>
-      item.id === id ? { ...item, isRead: true } : item,
-    );
-
+  const markAsUnread = (id: string) => {
+    const updated = notificationService.markAsUnread(id);
     setNotifications(updated);
-    saveNotifications(updated);
   };
 
   const markAllAsRead = () => {
-    const updated = notifications.map((item) => ({
-      ...item,
-      isRead: true,
-    }));
-
+    const updated = notificationService.markAllAsRead();
     setNotifications(updated);
-    saveNotifications(updated);
   };
 
   const unreadCount = useMemo(
@@ -178,8 +228,13 @@ export const NotificationsProvider = ({
       notifications,
       unreadCount,
       markAsRead,
+      markAsUnread,
       markAllAsRead,
+      deleteNotification,
+      clearAllNotifications,
       refreshNotifications,
+      addNotification,
+      notify,
     }),
     [notifications, unreadCount],
   );

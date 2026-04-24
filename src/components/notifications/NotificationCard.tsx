@@ -2,7 +2,9 @@ import type { NotificationItem } from "../../types/notification";
 
 interface NotificationCardProps {
   notification: NotificationItem;
-  onClick?: (id: string) => void;
+  onMarkAsRead?: (id: string) => void;
+  onMarkAsUnread?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const typeStyles: Record<NotificationItem["type"], string> = {
@@ -28,11 +30,15 @@ const formatNotificationTime = (value: string) => {
   });
 };
 
-const NotificationCard = ({ notification, onClick }: NotificationCardProps) => {
+const NotificationCard = ({
+  notification,
+  onMarkAsRead,
+  onMarkAsUnread,
+  onDelete,
+}: NotificationCardProps) => {
   return (
     <article
-      onClick={() => onClick?.(notification.id)}
-      className={`cursor-pointer rounded-3xl border p-4 shadow-sm transition hover:shadow-md sm:p-5 ${
+      className={`rounded-3xl border p-4 shadow-sm transition hover:shadow-md sm:p-5 ${
         notification.isRead
           ? "border-border-soft bg-surface"
           : "border-primary/20 bg-primary/5"
@@ -70,6 +76,34 @@ const NotificationCard = ({ notification, onClick }: NotificationCardProps) => {
           <p className="mt-1 text-sm font-medium text-text-primary">
             {formatNotificationTime(notification.createdAt)}
           </p>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          {notification.isRead ? (
+            <button
+              type="button"
+              onClick={() => onMarkAsUnread?.(notification.id)}
+              className="rounded-xl border border-border-soft px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-soft"
+            >
+              Mark as unread
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onMarkAsRead?.(notification.id)}
+              className="rounded-xl border border-border-soft px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-soft"
+            >
+              Mark as read
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => onDelete?.(notification.id)}
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </article>
