@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import InfoChip from "../components/ui/InfoChip";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import NotificationsSection from "../components/notifications/NotificationsSection";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
+import Skeleton from "../components/ui/Skeleton";
 
 const NotificationsPage = () => {
   const { user, isAuthenticated } = useAuth();
@@ -21,6 +22,15 @@ const NotificationsPage = () => {
     string | null
   >(null);
   const [isClearAllOpen, setIsClearAllOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const unreadNotifications = useMemo(
     () => notifications.filter((item) => !item.isRead),
@@ -47,6 +57,16 @@ const NotificationsPage = () => {
     clearAllNotifications();
     setIsClearAllOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 space-y-4">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
 
   return (
     <>

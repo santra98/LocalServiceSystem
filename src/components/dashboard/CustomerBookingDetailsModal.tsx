@@ -16,6 +16,15 @@ const CustomerBookingDetailsModal = ({
 }: CustomerBookingDetailsModalProps) => {
   if (!booking) return null;
 
+  const statusMessage =
+    booking.status === "pending"
+      ? "Your request has been sent and is waiting for provider confirmation."
+      : booking.status === "confirmed"
+        ? "Your booking has been confirmed by the provider."
+        : booking.status === "completed"
+          ? "This service has been completed successfully."
+          : "This booking was cancelled.";
+
   return (
     <Modal isOpen={isOpen} title="Booking Details" onClose={onClose}>
       <div className="space-y-4">
@@ -24,6 +33,12 @@ const CustomerBookingDetailsModal = ({
             {booking.providerName}
           </h3>
           <StatusBadge status={booking.status} />
+        </div>
+
+        <div className="rounded-2xl bg-soft px-4 py-3">
+          <p className="text-sm leading-6 text-text-secondary">
+            {statusMessage}
+          </p>
         </div>
 
         <DetailsRow label="Category" value={booking.category} />

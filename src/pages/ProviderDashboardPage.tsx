@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import ProviderRequestDetailsModal from "../components/dashboard/ProviderRequestDetailsModal";
 import ProviderEarningsSummary from "../components/dashboard/ProviderEarningsSummary";
@@ -9,6 +9,9 @@ import DashboardToolbar from "../components/dashboard/DashboardToolbar";
 import type { ProviderBookingRequest } from "../types/providerDashboard";
 import { useNotifications } from "../context/NotificationsContext";
 import { useProviderRequests } from "../hooks/useProviderRequests";
+import { useDashboardFilters } from "../hooks/useDashboardFilters";
+import ProviderDashboardSkeleton from "../components/dashboard/ProviderDashboardSkeleton";
+import { useDebounce } from "../hooks/useDebounce";
 
 const ProviderDashboardPage = () => {
   const { notify } = useNotifications();
@@ -25,34 +28,30 @@ const ProviderDashboardPage = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState("newest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [isLoading, setIsLoading] = useState(true);
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+  const [requestToComplete, setRequestToComplete] =
+    useState<ProviderBookingRequest | null>(null);
 
-  const filteredRequests = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
 
-    const filtered = allProviderRequests.filter((request) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        request.customerName.toLowerCase().includes(normalizedSearch) ||
-        request.service.toLowerCase().includes(normalizedSearch) ||
-        request.address.toLowerCase().includes(normalizedSearch) ||
-        request.phone.toLowerCase().includes(normalizedSearch);
+    return () => clearTimeout(timer);
+  }, []);
 
-      const matchesStatus =
-        statusFilter === "all" || request.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    return filtered.sort((a, b) => {
-      const firstDate = new Date(a.date).getTime();
-      const secondDate = new Date(b.date).getTime();
-
-      return sortOrder === "newest"
-        ? secondDate - firstDate
-        : firstDate - secondDate;
-    });
-  }, [allProviderRequests, searchTerm, statusFilter, sortOrder]);
+  const filteredRequests = useDashboardFilters({
+    data: allProviderRequests,
+    searchTerm: debouncedSearchTerm,
+    statusFilter,
+    sortOrder,
+    getSearchText: (r) =>
+      `${r.customerName} ${r.service} ${r.address} ${r.phone}`,
+    getStatus: (r) => r.status,
+    getDate: (r) => r.date,
+  });
 
   const confirmAcceptRequest = () => {
     if (!requestToAccept) return;
@@ -84,6 +83,21 @@ const ProviderDashboardPage = () => {
     setRequestToReject(null);
   };
 
+  const confirmCompleteRequest = () => {
+    if (!requestToComplete) return;
+
+    updateRequestStatus(requestToComplete, "completed");
+
+    notify({
+      title: "Job completed",
+      message: `${requestToComplete.service} job has been marked as completed.`,
+      type: "request",
+      toastType: "success",
+    });
+
+    setRequestToComplete(null);
+  };
+
   const pendingRequests = filteredRequests.filter(
     (request) => request.status === "pending",
   );
@@ -91,6 +105,18 @@ const ProviderDashboardPage = () => {
   const todaySchedule = filteredRequests.filter(
     (request) => request.status === "confirmed",
   );
+
+  const completedJobs = filteredRequests.filter(
+    (request) => request.status === "completed",
+  );
+
+  if (isLoading) {
+    return (
+      <div className="px-4 py-6">
+        <ProviderDashboardSkeleton />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -106,6 +132,13 @@ const ProviderDashboardPage = () => {
           onStatusChange={setStatusFilter}
           sortValue={sortOrder}
           onSortChange={setSortOrder}
+          resultCount={filteredRequests.length}
+          totalCount={allProviderRequests.length}
+          onReset={() => {
+            setSearchTerm("");
+            setStatusFilter("all");
+            setSortOrder("newest");
+          }}
           searchPlaceholder="Search by customer, service, address, phone..."
           statusOptions={[
             { label: "All statuses", value: "all" },
@@ -131,6 +164,15 @@ const ProviderDashboardPage = () => {
           description="Track confirmed jobs that are scheduled for the upcoming work cycle."
           requests={todaySchedule}
           emptyMessage="No confirmed jobs match your current search or filter."
+          onComplete={(request) => setRequestToComplete(request)}
+          onViewDetails={(request) => setSelectedRequest(request)}
+        />
+
+        <ProviderRequestsSection
+          title="Completed jobs"
+          description="Review jobs that have been successfully finished."
+          requests={completedJobs}
+          emptyMessage="No completed jobs match your current search or filter."
           onViewDetails={(request) => setSelectedRequest(request)}
         />
 
@@ -157,6 +199,17 @@ const ProviderDashboardPage = () => {
         confirmVariant="danger"
         onConfirm={confirmRejectRequest}
         onCancel={() => setRequestToReject(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={!!requestToComplete}
+        title="Mark job as completed?"
+        message="This will move the job into completed history and include it in your completed earnings."
+        confirmLabel="Yes, mark completed"
+        cancelLabel="Not now"
+        confirmVariant="primary"
+        onConfirm={confirmCompleteRequest}
+        onCancel={() => setRequestToComplete(null)}
       />
 
       <ProviderRequestDetailsModal
