@@ -10,15 +10,14 @@ import { providerRequests as mockProviderRequests } from "../data/providerDashbo
 import type { ProviderBookingRequest } from "../types/providerDashboard";
 import { useToast } from "../context/ToastContext";
 import { mapPlatformBookingToProviderRequest } from "../utils/mapPlatformBookingToProviderRequest";
-import {
-  getStoredPlatformBookings,
-  updatePlatformBookingStatus,
-} from "../utils/platformBookingStorage";
+
+import { useNotifications } from "../context/NotificationsContext";
+import { bookingService } from "../services/bookingService";
 
 const ProviderDashboardPage = () => {
-  const { showToast } = useToast();
+  const { notify } = useNotifications();
   const [platformBookings, setPlatformBookings] = useState(
-    getStoredPlatformBookings(),
+    bookingService.getAll(),
   );
   const [requestToAccept, setRequestToAccept] =
     useState<ProviderBookingRequest | null>(null);
@@ -70,28 +69,18 @@ const ProviderDashboardPage = () => {
     request: ProviderBookingRequest,
     status: "confirmed" | "cancelled",
   ) => {
-    updatePlatformBookingStatus({
-      id: request.id,
-      status,
+    const updatedBookings = bookingService.updateStatus(request.id, status);
+    setPlatformBookings(updatedBookings);
+
+    notify({
+      title: status === "confirmed" ? "Request accepted" : "Request rejected",
+      message:
+        status === "confirmed"
+          ? `${request.service} request has been accepted.`
+          : `${request.service} request has been rejected.`,
+      type: status === "confirmed" ? "request" : "alert",
+      toastType: status === "confirmed" ? "success" : "error",
     });
-
-    setPlatformBookings((prev) =>
-      prev.map((item) =>
-        item.id === request.id
-          ? {
-              ...item,
-              status,
-            }
-          : item,
-      ),
-    );
-
-    showToast(
-      status === "confirmed"
-        ? "Request accepted successfully."
-        : "Request rejected successfully.",
-      status === "confirmed" ? "success" : "info",
-    );
   };
 
   const confirmAcceptRequest = () => {

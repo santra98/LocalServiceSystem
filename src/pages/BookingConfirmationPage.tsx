@@ -1,23 +1,21 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { BookingData } from "../types/booking";
-import {
-  addPlatformBooking,
-  getStoredPlatformBookings,
-} from "../utils/platformBookingStorage";
+
 import { mapBookingToPlatformBooking } from "../utils/mapBookingToPlatformBooking";
 import { useToast } from "../context/ToastContext";
+import { useNotifications } from "../context/NotificationsContext";
+import { bookingService } from "../services/bookingService";
 
 const BookingConfirmationPage = () => {
   const location = useLocation();
-  const { showToast } = useToast();
+  const { notify } = useNotifications();
   const bookingData = location.state as BookingData | undefined;
 
   useEffect(() => {
     if (!bookingData) return;
 
-    const existingPlatformBookings = getStoredPlatformBookings();
-
+    const existingPlatformBookings = bookingService.getAll();
     const alreadyExists = existingPlatformBookings.some(
       (booking) =>
         booking.providerId === bookingData.providerId &&
@@ -29,14 +27,19 @@ const BookingConfirmationPage = () => {
 
     if (!alreadyExists) {
       const mappedBooking = mapBookingToPlatformBooking(bookingData);
-      addPlatformBooking(mappedBooking);
-      showToast("Booking created successfully.", "success");
+      bookingService.create(mappedBooking);
+      notify({
+        title: "Booking created",
+        message: `Your ${bookingData.service} booking with ${bookingData.providerName} has been created successfully.`,
+        type: "booking",
+        toastType: "success",
+      });
     }
 
     if (bookingData.providerId) {
       localStorage.removeItem(`booking-${bookingData.providerId}`);
     }
-  }, [bookingData, showToast]);
+  }, [bookingData, notify]);
 
   if (!bookingData) {
     return (

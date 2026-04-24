@@ -8,7 +8,9 @@ interface NotificationsSectionProps {
   description: string;
   items: NotificationItem[];
   emptyMessage: string;
-  onItemClick?: (id: string) => void;
+  onMarkAsRead?: (id: string) => void;
+  onMarkAsUnread?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const NotificationsSection = ({
@@ -16,7 +18,9 @@ const NotificationsSection = ({
   description,
   items,
   emptyMessage,
-  onItemClick,
+  onMarkAsRead,
+  onMarkAsUnread,
+  onDelete,
 }: NotificationsSectionProps) => {
   return (
     <section className="space-y-5">
@@ -30,7 +34,9 @@ const NotificationsSection = ({
             <NotificationCard
               key={item.id}
               notification={item}
-              onClick={onItemClick}
+              onMarkAsRead={onMarkAsRead}
+              onMarkAsUnread={onMarkAsUnread}
+              onDelete={onDelete}
             />
           ))}
         </div>

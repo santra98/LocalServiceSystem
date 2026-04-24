@@ -9,15 +9,14 @@ import { customerBookings as mockCustomerBookings } from "../data/customerBookin
 import type { CustomerBooking } from "../types/customerBooking";
 import { useToast } from "../context/ToastContext";
 import { mapPlatformBookingToCustomerBooking } from "../utils/mapPlatformBookingToCustomerBooking";
-import {
-  getStoredPlatformBookings,
-  updatePlatformBookingStatus,
-} from "../utils/platformBookingStorage";
+
+import { useNotifications } from "../context/NotificationsContext";
+import { bookingService } from "../services/bookingService";
 
 const CustomerDashboardPage = () => {
-  const { showToast } = useToast();
+  const { notify } = useNotifications();
   const [platformBookings, setPlatformBookings] = useState(
-    getStoredPlatformBookings(),
+    bookingService.getAll(),
   );
   const [bookingToCancel, setBookingToCancel] =
     useState<CustomerBooking | null>(null);
@@ -66,23 +65,19 @@ const CustomerDashboardPage = () => {
   const confirmCancelBooking = () => {
     if (!bookingToCancel) return;
 
-    updatePlatformBookingStatus({
-      id: bookingToCancel.id,
-      status: "cancelled",
-    });
-
-    setPlatformBookings((prev) =>
-      prev.map((item) =>
-        item.id === bookingToCancel.id
-          ? {
-              ...item,
-              status: "cancelled",
-            }
-          : item,
-      ),
+    const updatedBookings = bookingService.updateStatus(
+      bookingToCancel.id,
+      "cancelled",
     );
 
-    showToast("Booking cancelled successfully.", "info");
+    setPlatformBookings(updatedBookings);
+
+    notify({
+      title: "Booking cancelled",
+      message: `${bookingToCancel.service} booking with ${bookingToCancel.providerName} has been cancelled.`,
+      type: "alert",
+      toastType: "info",
+    });
     setBookingToCancel(null);
   };
 
