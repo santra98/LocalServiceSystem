@@ -1,21 +1,25 @@
 import StatusBadge from "../ui/StatusBadge";
 import type { ProviderBookingRequest } from "../../types/providerDashboard";
 import InfoChip from "../ui/InfoChip";
+import { memo } from "react";
 
 interface ProviderRequestCardProps {
   request: ProviderBookingRequest;
   onAccept?: (request: ProviderBookingRequest) => void;
   onReject?: (request: ProviderBookingRequest) => void;
   onViewDetails?: (request: ProviderBookingRequest) => void;
+  onComplete?: (request: ProviderBookingRequest) => void;
 }
 
 const ProviderRequestCard = ({
   request,
   onAccept,
   onReject,
+  onComplete,
   onViewDetails,
 }: ProviderRequestCardProps) => {
   const canTakeAction = request.status === "pending";
+  const canComplete = request.status === "confirmed";
 
   return (
     <article className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
@@ -117,9 +121,19 @@ const ProviderRequestCard = ({
             </button>
           </>
         )}
+
+        {canComplete && (
+          <button
+            type="button"
+            onClick={() => onComplete?.(request)}
+            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
+          >
+            Mark Completed
+          </button>
+        )}
       </div>
     </article>
   );
 };
 
-export default ProviderRequestCard;
+export default memo(ProviderRequestCard);

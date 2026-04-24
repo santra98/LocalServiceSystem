@@ -1,24 +1,30 @@
 import type { AdminReportedIssue } from "../../types/adminDashboard";
+import InfoChip from "../ui/InfoChip";
 
 interface ReportedIssueCardProps {
   issue: AdminReportedIssue;
+  onResolve?: (issue: AdminReportedIssue) => void;
 }
 
-const priorityClasses = {
-  low: "bg-blue-100 text-blue-700",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-red-100 text-red-700",
+const statusClasses: Record<AdminReportedIssue["status"], string> = {
+  open: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  in_review: "bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200",
+  resolved: "bg-green-50 text-green-700 ring-1 ring-green-200",
 };
 
-const statusClasses = {
-  open: "bg-red-100 text-red-700",
-  in_review: "bg-yellow-100 text-yellow-800",
-  resolved: "bg-green-100 text-green-800",
+const priorityClasses: Record<AdminReportedIssue["priority"], string> = {
+  low: "bg-soft text-text-primary ring-1 ring-border-soft",
+  medium: "bg-yellow-50 text-yellow-800 ring-1 ring-yellow-200",
+  high: "bg-red-50 text-red-700 ring-1 ring-red-200",
 };
 
-const ReportedIssueCard = ({ issue }: ReportedIssueCardProps) => {
+const formatLabel = (value: string) => value.replace("_", " ");
+
+const ReportedIssueCard = ({ issue, onResolve }: ReportedIssueCardProps) => {
+  const canResolve = issue.status !== "resolved";
+
   return (
-    <article className="rounded-xl border border-border-soft bg-surface p-6 shadow-sm">
+    <article className="rounded-3xl border border-border-soft bg-surface p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -27,57 +33,51 @@ const ReportedIssueCard = ({ issue }: ReportedIssueCardProps) => {
             </h3>
 
             <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${priorityClasses[issue.priority]}`}
+              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusClasses[issue.status]}`}
             >
-              {issue.priority}
+              {formatLabel(issue.status)}
             </span>
 
             <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusClasses[issue.status]}`}
+              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ${priorityClasses[issue.priority]}`}
             >
-              {issue.status.replace("_", " ")}
+              {issue.priority} priority
             </span>
           </div>
 
-          <p className="mt-3 text-sm text-text-secondary">
-            Reported by:{" "}
-            <span className="font-medium text-text-primary">
-              {issue.reportedBy}
-            </span>
-          </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            Category:{" "}
-            <span className="font-medium text-text-primary">
+          <div className="mt-3 space-y-1 text-sm text-text-secondary">
+            <p>
+              <span className="font-medium text-text-primary">Category:</span>{" "}
               {issue.category}
-            </span>
-          </p>
+            </p>
+            <p>
+              <span className="font-medium text-text-primary">Created:</span>{" "}
+              {issue.createdAt}
+            </p>
+          </div>
         </div>
 
         <div className="rounded-2xl bg-soft px-4 py-3 text-left lg:text-right">
           <p className="text-xs uppercase tracking-wide text-text-secondary/70">
-            Created
+            Reported by
           </p>
-          <p className="mt-1 font-semibold text-text-primary">
-            {issue.createdAt}
+          <p className="mt-1 text-sm font-medium text-text-primary">
+            {issue.reportedBy}
           </p>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button
-          type="button"
-          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
-        >
-          View Issue
-        </button>
-
-        <button
-          type="button"
-          className="rounded-xl border border-border-soft px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:bg-soft"
-        >
-          Update Status
-        </button>
-      </div>
+      {canResolve && (
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => onResolve?.(issue)}
+            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-hover"
+          >
+            Mark Resolved
+          </button>
+        </div>
+      )}
     </article>
   );
 };

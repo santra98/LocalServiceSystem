@@ -1,12 +1,17 @@
+type SortOrder = "newest" | "oldest";
+
 interface DashboardToolbarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   statusValue: string;
   onStatusChange: (value: string) => void;
-  sortValue: string;
-  onSortChange: (value: string) => void;
+  sortValue: SortOrder;
+  onSortChange: (value: SortOrder) => void;
   statusOptions: { label: string; value: string }[];
   searchPlaceholder?: string;
+  resultCount?: number;
+  totalCount?: number;
+  onReset?: () => void;
 }
 
 const DashboardToolbar = ({
@@ -18,9 +23,36 @@ const DashboardToolbar = ({
   onSortChange,
   statusOptions,
   searchPlaceholder = "Search...",
+  resultCount,
+  totalCount,
+  onReset,
 }: DashboardToolbarProps) => {
   return (
-    <section className="rounded-3xl border border-border-soft bg-surface p-5 shadow-sm">
+    <section className="rounded-3xl border border-border-soft bg-surface p-4 shadow-sm sm:p-5">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-text-primary">
+            Search and filters
+          </h2>
+          {typeof resultCount === "number" &&
+            typeof totalCount === "number" && (
+              <p className="mt-1 text-sm text-text-secondary">
+                Showing {resultCount} of {totalCount} results
+              </p>
+            )}
+        </div>
+
+        {onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="w-full rounded-xl border border-border-soft px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-soft sm:w-auto"
+          >
+            Reset filters
+          </button>
+        )}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_220px_220px]">
         <div>
           <label
@@ -70,7 +102,7 @@ const DashboardToolbar = ({
           <select
             id="dashboardSort"
             value={sortValue}
-            onChange={(e) => onSortChange(e.target.value)}
+            onChange={(e) => onSortChange(e.target.value as SortOrder)}
             className="w-full rounded-xl border border-border-soft bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-primary"
           >
             <option value="newest">Newest first</option>

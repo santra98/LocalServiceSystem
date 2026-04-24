@@ -7,6 +7,10 @@ import SettingsSection from "../components/ui/SettingsSection";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { getInitials } from "../utils/getInitials";
+import {
+  validatePasswordForm,
+  validateProfileForm,
+} from "../utils/profileValidation";
 
 type ProfileTab = "account" | "preferences" | "security";
 
@@ -37,7 +41,15 @@ const ProfilePage = () => {
   }
 
   const handleSaveProfile = () => {
-    if (!fullName.trim() || !email.trim()) return;
+    const errorMessage = validateProfileForm({
+      fullName,
+      email,
+    });
+
+    if (errorMessage) {
+      showToast(errorMessage, "error");
+      return;
+    }
 
     updateUser({
       name: fullName.trim(),
@@ -52,16 +64,14 @@ const ProfilePage = () => {
   };
 
   const handleSaveSecurity = () => {
-    if (
-      !currentPassword.trim() ||
-      !newPassword.trim() ||
-      !confirmPassword.trim()
-    ) {
-      return;
-    }
+    const errorMessage = validatePasswordForm({
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
 
-    if (newPassword !== confirmPassword) {
-      showToast("New passwords do not match.", "error");
+    if (errorMessage) {
+      showToast(errorMessage, "error");
       return;
     }
 

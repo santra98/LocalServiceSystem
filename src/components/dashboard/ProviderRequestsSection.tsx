@@ -11,6 +11,7 @@ interface ProviderRequestsSectionProps {
   onAccept?: (request: ProviderBookingRequest) => void;
   onReject?: (request: ProviderBookingRequest) => void;
   onViewDetails?: (request: ProviderBookingRequest) => void;
+  onComplete?: (request: ProviderBookingRequest) => void;
 }
 
 const ProviderRequestsSection = ({
@@ -20,6 +21,7 @@ const ProviderRequestsSection = ({
   emptyMessage,
   onAccept,
   onReject,
+  onComplete,
   onViewDetails,
 }: ProviderRequestsSectionProps) => {
   return (
@@ -41,6 +43,7 @@ const ProviderRequestsSection = ({
               request={request}
               onAccept={onAccept}
               onReject={onReject}
+              onComplete={onComplete}
               onViewDetails={onViewDetails}
             />
           ))}

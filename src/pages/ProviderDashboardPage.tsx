@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import ProviderRequestDetailsModal from "../components/dashboard/ProviderRequestDetailsModal";
 import ProviderEarningsSummary from "../components/dashboard/ProviderEarningsSummary";
@@ -6,94 +6,97 @@ import ProviderProfileCard from "../components/dashboard/ProviderProfileCard";
 import ProviderRequestsSection from "../components/dashboard/ProviderRequestsSection";
 import ProviderStats from "../components/dashboard/ProviderStats";
 import DashboardToolbar from "../components/dashboard/DashboardToolbar";
-import { providerRequests as mockProviderRequests } from "../data/providerDashboard";
 import type { ProviderBookingRequest } from "../types/providerDashboard";
-import { useToast } from "../context/ToastContext";
-import { mapPlatformBookingToProviderRequest } from "../utils/mapPlatformBookingToProviderRequest";
-
 import { useNotifications } from "../context/NotificationsContext";
-import { bookingService } from "../services/bookingService";
+import { useProviderRequests } from "../hooks/useProviderRequests";
+import { useDashboardFilters } from "../hooks/useDashboardFilters";
+import ProviderDashboardSkeleton from "../components/dashboard/ProviderDashboardSkeleton";
+import { useDebounce } from "../hooks/useDebounce";
 
 const ProviderDashboardPage = () => {
   const { notify } = useNotifications();
-  const [platformBookings, setPlatformBookings] = useState(
-    bookingService.getAll(),
-  );
+  const { allProviderRequests, updateRequestStatus } = useProviderRequests();
+
   const [requestToAccept, setRequestToAccept] =
     useState<ProviderBookingRequest | null>(null);
+
   const [requestToReject, setRequestToReject] =
     useState<ProviderBookingRequest | null>(null);
+
   const [selectedRequest, setSelectedRequest] =
     useState<ProviderBookingRequest | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState("newest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [isLoading, setIsLoading] = useState(true);
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+  const [requestToComplete, setRequestToComplete] =
+    useState<ProviderBookingRequest | null>(null);
 
-  const derivedStoredRequests = useMemo(() => {
-    return platformBookings.map(mapPlatformBookingToProviderRequest);
-  }, [platformBookings]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
 
-  const allProviderRequests = useMemo(() => {
-    return [...derivedStoredRequests, ...mockProviderRequests];
-  }, [derivedStoredRequests]);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const filteredRequests = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredRequests = useDashboardFilters({
+    data: allProviderRequests,
+    searchTerm: debouncedSearchTerm,
+    statusFilter,
+    sortOrder,
+    getSearchText: (r) =>
+      `${r.customerName} ${r.service} ${r.address} ${r.phone}`,
+    getStatus: (r) => r.status,
+    getDate: (r) => r.date,
+  });
 
-    const filtered = allProviderRequests.filter((request) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        request.customerName.toLowerCase().includes(normalizedSearch) ||
-        request.service.toLowerCase().includes(normalizedSearch) ||
-        request.address.toLowerCase().includes(normalizedSearch) ||
-        request.phone.toLowerCase().includes(normalizedSearch);
+  const confirmAcceptRequest = useCallback(() => {
+    if (!requestToAccept) return;
 
-      const matchesStatus =
-        statusFilter === "all" || request.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    return filtered.sort((a, b) => {
-      const firstDate = new Date(a.date).getTime();
-      const secondDate = new Date(b.date).getTime();
-
-      return sortOrder === "newest"
-        ? secondDate - firstDate
-        : firstDate - secondDate;
-    });
-  }, [allProviderRequests, searchTerm, statusFilter, sortOrder]);
-
-  const updateRequestStatus = (
-    request: ProviderBookingRequest,
-    status: "confirmed" | "cancelled",
-  ) => {
-    const updatedBookings = bookingService.updateStatus(request.id, status);
-    setPlatformBookings(updatedBookings);
+    updateRequestStatus(requestToAccept, "confirmed");
 
     notify({
-      title: status === "confirmed" ? "Request accepted" : "Request rejected",
-      message:
-        status === "confirmed"
-          ? `${request.service} request has been accepted.`
-          : `${request.service} request has been rejected.`,
-      type: status === "confirmed" ? "request" : "alert",
-      toastType: status === "confirmed" ? "success" : "error",
+      title: "Request accepted",
+      message: `${requestToAccept.service} request has been accepted.`,
+      type: "request",
+      toastType: "success",
     });
-  };
 
-  const confirmAcceptRequest = () => {
-    if (!requestToAccept) return;
-    updateRequestStatus(requestToAccept, "confirmed");
     setRequestToAccept(null);
-  };
+  }, [requestToAccept, updateRequestStatus, notify]);
 
-  const confirmRejectRequest = () => {
+  const confirmRejectRequest = useCallback(() => {
     if (!requestToReject) return;
+
     updateRequestStatus(requestToReject, "cancelled");
+
+    notify({
+      title: "Request rejected",
+      message: `${requestToReject.service} request has been rejected.`,
+      type: "alert",
+      toastType: "error",
+    });
+
     setRequestToReject(null);
-  };
+  }, [requestToReject, updateRequestStatus, notify]);
+
+  const confirmCompleteRequest = useCallback(() => {
+    if (!requestToComplete) return;
+
+    updateRequestStatus(requestToComplete, "completed");
+
+    notify({
+      title: "Job completed",
+      message: `${requestToComplete.service} job has been marked as completed.`,
+      type: "request",
+      toastType: "success",
+    });
+
+    setRequestToComplete(null);
+  }, [requestToComplete, updateRequestStatus, notify]);
 
   const pendingRequests = filteredRequests.filter(
     (request) => request.status === "pending",
@@ -102,6 +105,47 @@ const ProviderDashboardPage = () => {
   const todaySchedule = filteredRequests.filter(
     (request) => request.status === "confirmed",
   );
+
+  const completedJobs = filteredRequests.filter(
+    (request) => request.status === "completed",
+  );
+
+  if (isLoading) {
+    return (
+      <div className="px-4 py-6">
+        <ProviderDashboardSkeleton />
+      </div>
+    );
+  }
+
+  const handleOpenAcceptDialog = useCallback(
+    (request: ProviderBookingRequest) => {
+      setRequestToAccept(request);
+    },
+    [],
+  );
+
+  const handleOpenRejectDialog = useCallback(
+    (request: ProviderBookingRequest) => {
+      setRequestToReject(request);
+    },
+    [],
+  );
+
+  const handleOpenCompleteDialog = useCallback(
+    (request: ProviderBookingRequest) => {
+      setRequestToComplete(request);
+    },
+    [],
+  );
+
+  const handleViewDetails = useCallback((request: ProviderBookingRequest) => {
+    setSelectedRequest(request);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setSelectedRequest(null);
+  }, []);
 
   return (
     <>
@@ -117,6 +161,13 @@ const ProviderDashboardPage = () => {
           onStatusChange={setStatusFilter}
           sortValue={sortOrder}
           onSortChange={setSortOrder}
+          resultCount={filteredRequests.length}
+          totalCount={allProviderRequests.length}
+          onReset={() => {
+            setSearchTerm("");
+            setStatusFilter("all");
+            setSortOrder("newest");
+          }}
           searchPlaceholder="Search by customer, service, address, phone..."
           statusOptions={[
             { label: "All statuses", value: "all" },
@@ -142,6 +193,15 @@ const ProviderDashboardPage = () => {
           description="Track confirmed jobs that are scheduled for the upcoming work cycle."
           requests={todaySchedule}
           emptyMessage="No confirmed jobs match your current search or filter."
+          onComplete={(request) => setRequestToComplete(request)}
+          onViewDetails={(request) => setSelectedRequest(request)}
+        />
+
+        <ProviderRequestsSection
+          title="Completed jobs"
+          description="Review jobs that have been successfully finished."
+          requests={completedJobs}
+          emptyMessage="No completed jobs match your current search or filter."
           onViewDetails={(request) => setSelectedRequest(request)}
         />
 
@@ -168,6 +228,17 @@ const ProviderDashboardPage = () => {
         confirmVariant="danger"
         onConfirm={confirmRejectRequest}
         onCancel={() => setRequestToReject(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={!!requestToComplete}
+        title="Mark job as completed?"
+        message="This will move the job into completed history and include it in your completed earnings."
+        confirmLabel="Yes, mark completed"
+        cancelLabel="Not now"
+        confirmVariant="primary"
+        onConfirm={confirmCompleteRequest}
+        onCancel={() => setRequestToComplete(null)}
       />
 
       <ProviderRequestDetailsModal

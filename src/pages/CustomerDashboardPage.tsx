@@ -1,76 +1,56 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import CustomerBookingDetailsModal from "../components/dashboard/CustomerBookingDetailsModal";
 import CustomerBookingsSection from "../components/dashboard/CustomerBookingsSection";
 import CustomerProfileCard from "../components/dashboard/CustomerProfileCard";
 import CustomerStats from "../components/dashboard/CustomerStats";
 import DashboardToolbar from "../components/dashboard/DashboardToolbar";
-import { customerBookings as mockCustomerBookings } from "../data/customerBookings";
 import type { CustomerBooking } from "../types/customerBooking";
-import { useToast } from "../context/ToastContext";
-import { mapPlatformBookingToCustomerBooking } from "../utils/mapPlatformBookingToCustomerBooking";
-
 import { useNotifications } from "../context/NotificationsContext";
-import { bookingService } from "../services/bookingService";
+import { useCustomerBookings } from "../hooks/useCustomerBookings";
+import { useDashboardFilters } from "../hooks/useDashboardFilters";
+import CustomerDashboardSkeleton from "../components/dashboard/CustomerDashboardSkeleton";
+import { useDebounce } from "../hooks/useDebounce";
 
 const CustomerDashboardPage = () => {
   const { notify } = useNotifications();
-  const [platformBookings, setPlatformBookings] = useState(
-    bookingService.getAll(),
-  );
+  const { allBookings, cancelBooking } = useCustomerBookings();
+
   const [bookingToCancel, setBookingToCancel] =
     useState<CustomerBooking | null>(null);
+
   const [selectedBooking, setSelectedBooking] =
     useState<CustomerBooking | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState("newest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [isLoading, setIsLoading] = useState(true);
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  const derivedStoredBookings = useMemo(() => {
-    return platformBookings.map(mapPlatformBookingToCustomerBooking);
-  }, [platformBookings]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800); // simulate API delay
 
-  const allBookings = useMemo(() => {
-    return [...derivedStoredBookings, ...mockCustomerBookings];
-  }, [derivedStoredBookings]);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const filteredBookings = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredBookings = useDashboardFilters({
+    data: allBookings,
+    searchTerm: debouncedSearchTerm,
+    statusFilter,
+    sortOrder,
+    getSearchText: (b) =>
+      `${b.providerName} ${b.service} ${b.category} ${b.address}`,
+    getStatus: (b) => b.status,
+    getDate: (b) => b.date,
+  });
 
-    const filtered = allBookings.filter((booking) => {
-      const matchesSearch =
-        !normalizedSearch ||
-        booking.providerName.toLowerCase().includes(normalizedSearch) ||
-        booking.service.toLowerCase().includes(normalizedSearch) ||
-        booking.category.toLowerCase().includes(normalizedSearch) ||
-        booking.address.toLowerCase().includes(normalizedSearch);
-
-      const matchesStatus =
-        statusFilter === "all" || booking.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    return filtered.sort((a, b) => {
-      const firstDate = new Date(a.date).getTime();
-      const secondDate = new Date(b.date).getTime();
-
-      return sortOrder === "newest"
-        ? secondDate - firstDate
-        : firstDate - secondDate;
-    });
-  }, [allBookings, searchTerm, statusFilter, sortOrder]);
-
-  const confirmCancelBooking = () => {
+  const confirmCancelBooking = useCallback(() => {
     if (!bookingToCancel) return;
 
-    const updatedBookings = bookingService.updateStatus(
-      bookingToCancel.id,
-      "cancelled",
-    );
-
-    setPlatformBookings(updatedBookings);
+    cancelBooking(bookingToCancel);
 
     notify({
       title: "Booking cancelled",
@@ -78,17 +58,45 @@ const CustomerDashboardPage = () => {
       type: "alert",
       toastType: "info",
     });
-    setBookingToCancel(null);
-  };
 
-  const upcomingBookings = filteredBookings.filter(
+    setBookingToCancel(null);
+  }, [bookingToCancel, cancelBooking, notify]);
+
+  const activeBookings = filteredBookings.filter(
     (booking) => booking.status === "pending" || booking.status === "confirmed",
   );
 
-  const pastBookings = filteredBookings.filter(
-    (booking) =>
-      booking.status === "completed" || booking.status === "cancelled",
+  const completedBookings = filteredBookings.filter(
+    (booking) => booking.status === "completed",
   );
+
+  const cancelledBookings = filteredBookings.filter(
+    (booking) => booking.status === "cancelled",
+  );
+
+  if (isLoading) {
+    return (
+      <div className="px-4 py-6">
+        <CustomerDashboardSkeleton />
+      </div>
+    );
+  }
+
+  const handleOpenCancelDialog = useCallback((booking: CustomerBooking) => {
+    setBookingToCancel(booking);
+  }, []);
+
+  const handleViewDetails = useCallback((booking: CustomerBooking) => {
+    setSelectedBooking(booking);
+  }, []);
+
+  const handleCloseDetails = useCallback(() => {
+    setSelectedBooking(null);
+  }, []);
+
+  const handleCloseCancelDialog = useCallback(() => {
+    setBookingToCancel(null);
+  }, []);
 
   return (
     <>
@@ -104,6 +112,13 @@ const CustomerDashboardPage = () => {
           onStatusChange={setStatusFilter}
           sortValue={sortOrder}
           onSortChange={setSortOrder}
+          resultCount={filteredBookings.length}
+          totalCount={allBookings.length}
+          onReset={() => {
+            setSearchTerm("");
+            setStatusFilter("all");
+            setSortOrder("newest");
+          }}
           searchPlaceholder="Search by provider, service, category, address..."
           statusOptions={[
             { label: "All statuses", value: "all" },
@@ -115,20 +130,28 @@ const CustomerDashboardPage = () => {
         />
 
         <CustomerBookingsSection
-          title="Upcoming bookings"
-          description="Track bookings that are pending or already confirmed."
-          bookings={upcomingBookings}
-          emptyMessage="No upcoming bookings match your current search or filter."
-          onCancel={(booking) => setBookingToCancel(booking)}
-          onViewDetails={(booking) => setSelectedBooking(booking)}
+          title="Active bookings"
+          description="Track service requests that are pending or already confirmed."
+          bookings={activeBookings}
+          emptyMessage="No active bookings match your current search or filter."
+          onCancel={handleOpenCancelDialog}
+          onViewDetails={handleViewDetails}
         />
 
         <CustomerBookingsSection
-          title="Past bookings"
-          description="Review completed or cancelled service requests."
-          bookings={pastBookings}
-          emptyMessage="No past bookings match your current search or filter."
-          onViewDetails={(booking) => setSelectedBooking(booking)}
+          title="Completed bookings"
+          description="Review services that were successfully completed."
+          bookings={completedBookings}
+          emptyMessage="No completed bookings match your current search or filter."
+          onViewDetails={handleViewDetails}
+        />
+
+        <CustomerBookingsSection
+          title="Cancelled bookings"
+          description="Review bookings that were cancelled before completion."
+          bookings={cancelledBookings}
+          emptyMessage="No cancelled bookings match your current search or filter."
+          onViewDetails={handleViewDetails}
         />
       </div>
 
@@ -140,13 +163,13 @@ const CustomerDashboardPage = () => {
         cancelLabel="Keep booking"
         confirmVariant="danger"
         onConfirm={confirmCancelBooking}
-        onCancel={() => setBookingToCancel(null)}
+        onCancel={handleCloseCancelDialog}
       />
 
       <CustomerBookingDetailsModal
         booking={selectedBooking}
         isOpen={!!selectedBooking}
-        onClose={() => setSelectedBooking(null)}
+        onClose={handleCloseDetails}
       />
     </>
   );
