@@ -14,7 +14,7 @@ const ForgotPasswordPage = () => {
         Forgot password
       </h1>
       <p className="mt-2 text-sm leading-6 text-text-secondary">
-        Enter your email and we’ll send password reset instructions.
+        Enter your email and we'll send password reset instructions.
       </p>
 
       <div className="mt-8">

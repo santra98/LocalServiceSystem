@@ -72,7 +72,7 @@ const NotificationsPage = () => {
     <>
       <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 sm:py-6">
         <div className="space-y-6 sm:space-y-8">
-          <section className="rounded-3xl border border-border-soft bg-surface p-4 shadow-sm sm:p-6">
+          <section className="rounded-xl border border-border-soft bg-surface p-4 shadow-sm sm:p-6">
             <div className="flex flex-col gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-text-primary sm:text-3xl">
